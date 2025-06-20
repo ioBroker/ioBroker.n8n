@@ -48,6 +48,8 @@
     "admin/",
     "dist/",
     "LICENSE",
+    "n8n-nodes-iobroker/nodes/",
+    "n8n-nodes-iobroker/dist/",
     "io-package.json"
   ],
   "scripts": {
