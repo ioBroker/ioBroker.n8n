@@ -1,0 +1,88 @@
+{
+  "common": {
+    "name": "n8n",
+    "version": "4.0.2",
+    "news": {
+
+    },
+    "title": "n8n",
+    "titleLang": {
+      "en": "n8n",
+      "de": "n8n",
+      "ru": "n8n",
+      "pt": "n8n",
+      "nl": "n8n",
+      "fr": "n8n",
+      "it": "n8n",
+      "es": "n8n",
+      "pl": "n8n",
+      "uk": "n8n",
+        "zh-cn": "n8n"
+    },
+    "desc": {
+      "en": "Edit and execute n8n workflows within ioBroker.",
+        "de": "n8n-Workflows innerhalb von ioBroker bearbeiten und ausführen.",
+        "ru": "Редактируйте и выполняйте рабочие процессы n8n в ioBroker.",
+        "pt": "Editar e executar fluxos de trabalho n8n dentro do ioBroker.",
+        "nl": "Bewerk en voer n8n-workflows uit binnen ioBroker.",
+        "fr": "Modifier et exécuter des flux de travail n8n dans ioBroker.",
+        "it": "Modifica ed esegui i flussi di lavoro n8n all'interno di ioBroker.",
+        "es": "Editar y ejecutar flujos de trabajo n8n dentro de ioBroker.",
+        "pl": "Edytuj i wykonuj przepływy pracy n8n w ioBroker.",
+        "uk": "Редагуйте та виконуйте робочі процеси n8n в ioBroker.",
+        "zh-cn": "在 ioBroker 中编辑和执行 n8n 工作流。"
+    },
+    "authors": [
+      "bluefox <dogafox@gmail.com>"
+    ],
+    "licenseInformation": {
+      "type": "free",
+      "license": "MIT"
+    },
+    "platform": "Javascript/Node.js",
+    "mode": "daemon",
+    "readme": "https://github.com/ioBroker/ioBroker.n8n/blob/master/README.md",
+    "loglevel": "info",
+    "icon": "n8n.svg",
+    "enabled": true,
+    "messagebox": true,
+    "adminUI": {
+      "config": "json"
+    },
+    "eraseOnUpload": true,
+    "keywords": [
+      "Workflows",
+      "n8n"
+    ],
+    "compact": true,
+    "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.n8n/master/admin/n8n.svg",
+    "type": "logic",
+    "adminTab": {
+      "link": "http://localhost:5678",
+      "name": {
+        "en": "n8n",
+        "de": "n8n",
+        "ru": "n8n",
+        "pt": "n8n",
+        "nl": "n8n",
+        "fr": "n8n",
+        "it": "n8n",
+        "es": "n8n",
+        "pl": "n8n",
+        "uk": "n8n",
+        "zh-cn": "n8n"
+      },
+      "singleton": false
+    },
+    "connectionType": "local",
+    "dataSource": "push",
+    "dependencies": [
+      {
+        "js-controller": ">=6.0.0"
+      }
+    ],
+    "tier": 1
+  },
+  "native": {},
+  "instanceObjects": []
+}
