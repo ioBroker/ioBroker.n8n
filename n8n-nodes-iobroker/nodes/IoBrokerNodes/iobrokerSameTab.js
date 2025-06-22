@@ -1,26 +1,4 @@
-function openSelectDialogNewTab(item, allowAll) {
-	let dialog = null;
-	window._iobChannel ||= new BroadcastChannel('ioBrokerChannel');
-	// Nachrichten vom Child empfangen
-	window._iobChannel.onmessage = (event) => {
-		if (event.data.child === true) {
-			if (event.data.type === 'selected' && event.data.newId) {
-				item.value = event.data.newId;
-				item.dispatchEvent(new Event('input'));
-			}
-			window._iobChannel.postMessage({ parent: true, type: 'close' });
-			dialog?.close();
-		}
-	};
-
-	// Open new tab http://host:5680/index.html?selected=item.value&allowAll=allowAll
-	dialog = window.open(
-		`/assets/iobroker.html?selected=${encodeURIComponent(item.value)}&allowAll=${!!allowAll}`,
-		'_blank',
-	);
-}
-
-function openSelectDialogSameTab(item, allowAll) {
+function openSelectDialog(item, allowAll) {
 	let selectDialog = document.getElementById('iob-select-id');
 
 	window._iobOnSelected = function (newId, newObj, oldId, oldObj) {
@@ -89,7 +67,7 @@ function detectIoBroker() {
 						newButton.addEventListener('click', (e) => {
 							e.stopPropagation();
 							console.log('iobroker detected');
-							openSelectDialogSameTab(item, false);
+							openSelectDialog(item, false);
 						});
 					}
 				}

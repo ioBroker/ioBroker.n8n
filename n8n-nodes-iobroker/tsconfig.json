@@ -20,6 +20,9 @@
 		"sourceMap": true,
 		"skipLibCheck": true,
 		"outDir": "./dist/",
+		"types": [
+			"@iobroker/types",
+		],
 	},
 	"include": [
 		"credentials/**/*",
