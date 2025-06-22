@@ -4,7 +4,7 @@ import { execSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readdirSync, lstatSync, readFileSync, writeFileSync } from 'node:fs';
 import { execute } from '@oclif/core';
 import { join } from 'node:path';
-import express, { type Express, NextFunction, type Request, type Response } from 'express';
+import express, { type Express, type NextFunction, type Request, type Response } from 'express';
 import session from 'express-session';
 
 import {
@@ -261,7 +261,9 @@ export class N8NAdapter extends Adapter {
             // Place before first <title> tag the script
             indexHtml = indexHtml.replace(
                 '<title>',
-                `<script src="/assets/iobroker.js" crossorigin></script>
+                `<script src="/assets/socket.iob.js" crossorigin></script>
+        <script src="/assets/iobroker.js" crossorigin></script>
+        <script src="/assets/iobrokerSelectId.umd.js" crossorigin></script>
         <title>`,
             );
             writeFileSync(`${parts.join('/')}/dist/index.html`, indexHtml);
