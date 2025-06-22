@@ -3,3 +3,4 @@ iob_npm.done
 /dist/
 package-lock.json
 node_modules
+n8n/

@@ -1,5 +1,8 @@
 export type N8NAdapterConfig = {
-    host: string;
+    bind: string;
     port: number;
     secure: boolean;
-}
+    doNotCheckPublicIP: boolean;
+    auth: boolean;
+    ttl: number;
+};

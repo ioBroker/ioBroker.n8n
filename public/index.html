@@ -1,0 +1,107 @@
+<html>
+<head>
+    <title>IoBroker selector</title>
+    <style>
+        html {
+            height: 100%;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
+            'Droid Sans', 'Helvetica Neue', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        /* scrollbar */
+        *::-webkit-scrollbar-track {
+            background-color: #ccc;
+        }
+        *::-webkit-scrollbar {
+            width: 6px;
+            background-color: #ccc;
+        }
+        *::-webkit-scrollbar-thumb {
+            background-color: #575757;
+        }
+        body {
+            background-color: #000;
+            color: #fff;
+        }
+    </style>
+    <script src="/assets/socket.iob.js"></script>
+    <script src="/assets/iobrokerSelectId.umd.js"></script>
+    <script>
+        const channel = new BroadcastChannel('ioBrokerChannel');
+        channel.onmessage = (event) => {
+            if (event.data === 'close') {
+                window.close();
+            }
+        };
+        function getQuery() {
+            const query = window.location.search.substring(1);
+            const vars = query.split('&');
+            const result = {};
+            for (let i = 0; i < vars.length; i++) {
+                const [name, value] = vars[i].split('=');
+                const key = decodeURIComponent(name);
+                result[key] = decodeURIComponent(value);
+                if (result[key] === 'true') {
+                    result[key] = true;
+                } else if (result[key] === 'false') {
+                    result[key] = false;
+                } else if (!isNaN(result[key])) {
+                    result[key] = parseFloat(result[key]);
+                }
+            }
+            return false;
+        }
+
+        window._iobOnSelected = function (newId, newObj, oldId, oldObj) {
+            console.log(newId);
+            channel.postMessage({
+                type: 'selected',
+                newId: newId,
+                newObj: newObj,
+                oldId: oldId,
+                oldObj: oldObj
+            });
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            let selectDialog = document.getElementById('iob-select-id');
+
+            (window.addEventListener || window.attachEvent)(window.addEventListener ? 'message' : 'onmessage', event => {
+                if ((typeof event.data === 'string' && event.data === 'close') ||
+                    (typeof event.message === 'string' && event.message === 'close')
+                ) {
+                    debugger;
+                    window.close();
+                }
+            }, false);
+
+            const query = getQuery();
+            selectDialog.setAttribute('host', window.location.hostname);
+            selectDialog.setAttribute('protocol', window.location.protocol);
+            selectDialog.setAttribute('onclose', '_iobOnSelected');
+            selectDialog.setAttribute('selected', query.selected);
+            selectDialog.setAttribute('open', 'true');
+            selectDialog.setAttribute('all', !!query.allowAll);
+        });
+    </script>
+</head>
+<body>
+<iobroker-select-id
+        theme="dark"
+        id="iob-select-id"
+        port="5680"
+        language="en"
+        onclose="_iobOnSelected"
+        open="true"
+>
+</iobroker-select-id>
+</body>
+</html>
