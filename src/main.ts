@@ -257,13 +257,11 @@ export class N8NAdapter extends Adapter {
         parts.pop();
         const distPath = `${parts.join('/')}/dist`;
         let indexHtml = readFileSync(`${distPath}/index.html`).toString();
-        if (!indexHtml.includes('iobrokerSelectId')) {
+        if (!indexHtml.includes('iobroker')) {
             // Place before first <title> tag the script
             indexHtml = indexHtml.replace(
                 '<title>',
-                `<script src="/assets/socket.iob.js" crossorigin></script>
-        <script src="/assets/iobrokerSelectId.umd.js" crossorigin></script>
-        <script src="/assets/iobroker.js" crossorigin></script>
+                `<script src="/assets/iobroker.js" crossorigin></script>
         <title>`,
             );
             writeFileSync(`${parts.join('/')}/dist/index.html`, indexHtml);
@@ -275,16 +273,11 @@ export class N8NAdapter extends Adapter {
         copyFileSync(`${__dirname}/../public/index.html`, `${distPath}/assets/iobroker.html`);
         const ioBrokerSelectId = require.resolve('@iobroker/webcomponent-selectid-dialog').replace('.es.', '.umd.');
         copyFileSync(ioBrokerSelectId, `${distPath}/assets/iobrokerSelectId.umd.js`);
-        copyFileSync(ioBrokerSelectId, `${__dirname}/../public/iobrokerSelectId.umd.js`);
 
         const ioBrokerWs = require.resolve('@iobroker/ws');
         copyFileSync(
             ioBrokerWs.replace(/\\/g, '/').replace('/cjs/socket.io.js', '/esm/socket.io.min.js'),
             `${distPath}/assets/socket.iob.js`,
-        );
-        copyFileSync(
-            ioBrokerWs.replace(/\\/g, '/').replace('/cjs/socket.io.js', '/esm/socket.io.min.js'),
-            `${__dirname}/../public/socket.iob.js`,
         );
 
         // Check if node_modules directory exists in the n8n user folder
