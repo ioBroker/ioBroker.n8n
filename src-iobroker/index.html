@@ -3,30 +3,59 @@
 <head>
     <meta charset="utf-8"/>
     <link rel="shortcut icon" href="favicon.ico" />
-    <link rel="stylesheet" type="text/css" href="style.css" />
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
     <meta name="theme-color" content="#000000" />
     <link rel="manifest" href="manifest.json" />
+    <style>
+        html {
+            height: 100%;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
+            'Droid Sans', 'Helvetica Neue', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        /* scrollbar */
+        *::-webkit-scrollbar-track {
+            background-color: #ccc;
+        }
+        *::-webkit-scrollbar {
+            width: 6px;
+            background-color: #ccc;
+        }
+        *::-webkit-scrollbar-thumb {
+            background-color: #575757;
+        }
+
+        #root {
+            height: 100%;
+            overflow-y: hidden;
+        }
+        .App {
+            height: 100%;
+        }
+    </style>
     <script>
-        var script = document.createElement('script');
+        const script = document.createElement('script');
         window.registerSocketOnLoad = function (cb) {
             window.socketLoadedHandler = cb;
         };
-        const parts = (window.location.search || '').replace(/^\?/, '').split('&');
-        const query = {};
-        parts.forEach(item => {
-            const [name, val] = item.split('=');
-            query[decodeURIComponent(name)] = val !== undefined ? decodeURIComponent(val) : true;
-        });
         script.onload = function () { typeof window.socketLoadedHandler === 'function' && window.socketLoadedHandler(); };
-        script.src = window.location.port === '3000' ? `${window.location.protocol}//${query.host || window.location.hostname}:${query.port || 8081}/lib/js/socket.io.js` : '../../lib/js/socket.io.js';
+        //script.src = window.location.port === '3000' ? `${window.location.protocol}//${window.location.hostname}:${5680}/socket.iob.js` : '/assest/socket.iob.js';
+        script.src = `${window.location.protocol}//${window.location.hostname}:5680/socket.iob.js`;
 
         document.head.appendChild(script);
     </script>
-    <title>Scenes [ioBroker]</title>
+    <title>ioBroker.Selector</title>
 </head>
 <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

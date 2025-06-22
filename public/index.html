@@ -74,15 +74,6 @@
         document.addEventListener('DOMContentLoaded', function () {
             let selectDialog = document.getElementById('iob-select-id');
 
-            (window.addEventListener || window.attachEvent)(window.addEventListener ? 'message' : 'onmessage', event => {
-                if ((typeof event.data === 'string' && event.data === 'close') ||
-                    (typeof event.message === 'string' && event.message === 'close')
-                ) {
-                    debugger;
-                    window.close();
-                }
-            }, false);
-
             const query = getQuery();
             selectDialog.setAttribute('host', window.location.hostname);
             selectDialog.setAttribute('protocol', window.location.protocol);

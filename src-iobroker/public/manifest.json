@@ -1,6 +1,6 @@
 {
-    "short_name": "Consumption",
-    "name": "ioBroker Consumption Configuration",
+    "short_name": "Selector",
+    "name": "ioBroker selector",
     "icons": [
         {
             "src": "favicon.ico",
