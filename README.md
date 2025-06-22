@@ -12,7 +12,6 @@
 
 With _n8n Adapter_ you can edit and execute [n8n](https://n8n.io/) workflows directly from ioBroker.
 
-
 ## Todo
 - Logs
 - Files
