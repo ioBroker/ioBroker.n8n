@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "n8n",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "news": {
+      "0.0.6": {
+        "en": "initial commit",
+        "de": "erstbestellung",
+        "ru": "первоначальное обязательство",
+        "pt": "commit inicial",
+        "nl": "initiële commit",
+        "fr": "commit initial",
+        "it": "commit iniziale",
+        "es": "inicial",
+        "pl": "initial commit",
+        "uk": "початкова комісія",
+        "zh-cn": "初步承诺"
+      },
       "0.0.5": {
         "en": "initial commit",
         "de": "erstbestellung",
