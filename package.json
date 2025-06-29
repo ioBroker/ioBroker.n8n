@@ -57,6 +57,8 @@
     "LICENSE",
     "n8n-nodes-iobroker/nodes/",
     "n8n-nodes-iobroker/dist/",
+    "n8n-nodes-iobroker/index.js",
+    "n8n-nodes-iobroker/package.json",
     "io-package.json"
   ],
   "scripts": {
