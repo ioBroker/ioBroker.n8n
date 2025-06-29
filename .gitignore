@@ -1,7 +1,6 @@
 .idea
 iob_npm.done
 /dist/
-package-lock.json
 node_modules
 n8n/
 n8n-nodes-iobroker/dist/
