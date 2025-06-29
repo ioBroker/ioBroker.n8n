@@ -25,7 +25,7 @@ With _n8n Adapter_ you can edit and execute [n8n](https://n8n.io/) workflows dir
 	### **WORK IN PROGRESS**
 -->
 
-## Changelog
+### **WORK IN PROGRESS**
 ### 0.0.7 (2025-06-29)
 * (bluefox) initial commit
 
@@ -33,6 +33,9 @@ With _n8n Adapter_ you can edit and execute [n8n](https://n8n.io/) workflows dir
 The MIT License (MIT)
 
 Copyright (c) 2025, Denis Haev (dogafox@gmail.com)
+
+All third party components incorporated into the ioBroker.n8n Software are licensed under the original license
+provided by the owner of the applicable component.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

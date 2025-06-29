@@ -7,7 +7,7 @@
     "email": "dogafox@gmail.com"
   },
   "homepage": "https://github.com/ioBroker/ioBroker.n8n",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "keywords": [
     "ioBroker",
     "n8n",
