@@ -26,7 +26,7 @@ With _n8n Adapter_ you can edit and execute [n8n](https://n8n.io/) workflows dir
 -->
 
 ## Changelog
-### 0.0.3 (2025-06-29)
+### **WORK IN PROGRESS**
 * (bluefox) initial commit
 
 ## License
