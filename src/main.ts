@@ -2,11 +2,10 @@ import { setDefaultResultOrder } from 'node:dns';
 import { setDefaultAutoSelectFamily } from 'node:net';
 import { execSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readdirSync, lstatSync, readFileSync, writeFileSync } from 'node:fs';
-import { execute } from '@oclif/core';
 import { join } from 'node:path';
 import express, { type Express, type NextFunction, type Request, type Response } from 'express';
 import session from 'express-session';
-
+import { Config } from './Config';
 import {
     Adapter,
     type AdapterOptions,
@@ -14,11 +13,60 @@ import {
     EXIT_CODES,
     commonTools,
 } from '@iobroker/adapter-core';
+process.env.N8N_RUNNERS_ENABLED = 'true';
+process.env.N8N_USER_FOLDER = join(getAbsoluteDefaultDataDir(), 'n8n');
+if (process.platform !== 'win32') {
+    process.env.N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS = 'false';
+}
+process.env.N8N_SECURE_COOKIE = 'false';
+import { Start } from 'n8n/dist/commands/start';
+
 import type { IOSocketClass } from 'iobroker.ws';
 import { WebServer, checkPublicIP } from '@iobroker/webserver';
 import type { N8NAdapterConfig } from './types';
 import { SocketAdmin, type Server, type Store, type SocketSettings } from '@iobroker/socket-classes';
 import { SocketIO } from '@iobroker/ws-server';
+
+import type { LogScope } from '@n8n/config';
+import type { Logger as LoggerType, LogMetadata } from 'n8n-workflow';
+
+class Logger implements LoggerType {
+    coreLogger: ioBroker.Logger;
+    constructor(coreLogger: ioBroker.Logger) {
+        this.coreLogger = coreLogger;
+    }
+    scoped(_scopes: LogScope | LogScope[]): Logger {
+        return this;
+    }
+    error(message: string, metadata?: LogMetadata): void {
+        if (metadata) {
+            // If metadata is provided, we can log it as an object
+            message = `${message} ${JSON.stringify(metadata)}`;
+        }
+        this.coreLogger.error(`[n8n] ${message}`);
+    }
+    warn(message: string, metadata?: LogMetadata): void {
+        if (metadata) {
+            // If metadata is provided, we can log it as an object
+            message = `${message} ${JSON.stringify(metadata)}`;
+        }
+        this.coreLogger.warn(`[n8n] ${message}`);
+    }
+    info(message: string, metadata?: LogMetadata): void {
+        if (metadata) {
+            // If metadata is provided, we can log it as an object
+            message = `${message} ${JSON.stringify(metadata)}`;
+        }
+        this.coreLogger.info(`[n8n] ${message}`);
+    }
+    debug(message: string, metadata?: LogMetadata): void {
+        if (metadata) {
+            // If metadata is provided, we can log it as an object
+            message = `${message} ${JSON.stringify(metadata)}`;
+        }
+        this.coreLogger.debug(`[n8n] ${message}`);
+    }
+}
 
 interface WebStructure {
     server: null | (Server & { __server: WebStructure });
@@ -28,6 +76,7 @@ interface WebStructure {
 
 export class N8NAdapter extends Adapter {
     declare config: N8NAdapterConfig;
+    private n8nProcess: Start | null = null;
     private webServer: WebStructure = {
         server: null,
         io: null,
@@ -42,8 +91,8 @@ export class N8NAdapter extends Adapter {
         super({
             ...options,
             name: 'n8n',
-            unload: cb => {
-                this.destroyN8n();
+            unload: async (cb): Promise<void> => {
+                await this.destroyN8n();
                 cb?.();
             },
             ready: async (): Promise<void> => this.main(),
@@ -200,7 +249,7 @@ export class N8NAdapter extends Adapter {
                     this.checkTimeout = this.setTimeout(async () => {
                         this.checkTimeout = null;
                         try {
-                            await checkPublicIP(this.config.port, 'ioBroker.web', '/iobroker_check.html');
+                            await checkPublicIP(this.config.port || 5680, 'ioBroker.web', '/iobroker_check.html');
                         } catch (e) {
                             // this supported first from js-controller 5.0.
                             this.sendToHost(
@@ -298,12 +347,7 @@ export class N8NAdapter extends Adapter {
 
     private async main(): Promise<void> {
         this.log.info('N8N Adapter started');
-        process.env.N8N_RUNNERS_ENABLED = 'true';
-        if (this.instance === 0) {
-            process.env.N8N_USER_FOLDER = join(getAbsoluteDefaultDataDir(), 'n8n');
-        } else {
-            process.env.N8N_USER_FOLDER = join(getAbsoluteDefaultDataDir(), `n8n.${this.instance}`);
-        }
+
         setDefaultResultOrder('ipv4first');
         setDefaultAutoSelectFamily?.(false);
 
@@ -311,17 +355,39 @@ export class N8NAdapter extends Adapter {
 
         await this.startWebServer();
 
-        const dirName = require.resolve('n8n');
+        // Start N8N process
+        // Simulate loading the configuration
+        const config = await Config.load({});
+        // Create class instance
+        this.n8nProcess = new Start([], config as any);
+        const logger = new Logger(this.log);
+        // @ts-expect-error override logger
+        this.n8nProcess.logger = logger as any;
+        this.n8nProcess.log = (message: string, ...args: any[]): void => {
+            // Convert args to a string if they are provided
+            if (args.length > 0) {
+                message += ` ${args.map(arg => (typeof arg === 'object' ? JSON.stringify(arg) : arg)).join(' ')}`;
+            }
+            const lines = message.split('\n');
+            // Log each line separately
+            for (const line of lines) {
+                if (line.trim()) {
+                    this.log.debug(`[n8n] ${line.trim()}`);
+                }
+            }
+        };
 
-        await execute({ dir: dirName, args: ['start'] });
+        await this.n8nProcess.init();
+        await this.n8nProcess.run();
     }
 
-    private destroyN8n(): void {
+    private async destroyN8n(): Promise<void> {
         if (this.checkTimeout) {
             this.clearTimeout(this.checkTimeout);
             this.checkTimeout = undefined;
         }
         this.log.info('Destroying N8N integration');
+        await this.n8nProcess?.stopProcess();
         // Clean up resources, close connections, etc.
         this.webServer?.io?.close();
         this.webServer?.server?.close();
