@@ -1,5 +1,4 @@
 import {
-	NodeConnectionType,
 	NodeOperationError,
 	type IExecuteFunctions,
 	type INodeExecutionData,
@@ -21,8 +20,8 @@ export class IoBrokerOutputNode implements INodeType {
 			name: 'ioBroker Output',
 			color: '#144578',
 		},
-		inputs: [NodeConnectionType.Main],
-		outputs: [NodeConnectionType.Main],
+		inputs: ['main'], // NodeConnectionType.Main
+		outputs: ['main'], // NodeConnectionType.Main
 		// usableAsTool: true,
 		properties: [
 			{

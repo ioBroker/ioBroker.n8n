@@ -1,5 +1,4 @@
 import {
-	NodeConnectionType,
 	type INodeType,
 	type INodeTypeDescription,
 	type ITriggerFunctions,
@@ -31,7 +30,7 @@ export class IoBrokerTriggerNode implements INodeType {
 			color: '#144578',
 		},
 		inputs: [],
-		outputs: [NodeConnectionType.Main],
+		outputs: ['main'], // NodeConnectionType.Main
 		// usableAsTool: true,
 		properties: [
 			{

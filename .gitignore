@@ -4,3 +4,5 @@ iob_npm.done
 node_modules
 n8n/
 n8n-nodes-iobroker/dist/
+*.tgz
+tmp/
