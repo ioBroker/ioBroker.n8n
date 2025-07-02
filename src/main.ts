@@ -351,6 +351,14 @@ export class N8NAdapter extends Adapter {
         setDefaultResultOrder('ipv4first');
         setDefaultAutoSelectFamily?.(false);
 
+        // Find out of n8n is installed in '../../node_modules' or in '../node_modules'
+        const n8nDir = require.resolve('n8n');
+        if (!n8nDir.toLowerCase().includes('iobroker.n8n')) {
+            // Run npm install in the current adapter directory
+            const adapterDir = join(__dirname, '..');
+            execSync('npm install --omit=dev', { cwd: adapterDir, stdio: 'inherit' });
+        }
+
         this.copyFilesToN8N();
 
         await this.startWebServer();
