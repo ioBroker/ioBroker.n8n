@@ -19,7 +19,6 @@ if (process.platform !== 'win32') {
     process.env.N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS = 'false';
 }
 process.env.N8N_SECURE_COOKIE = 'false';
-import { Start } from 'n8n/dist/commands/start';
 
 import type { IOSocketClass } from 'iobroker.ws';
 import { WebServer, checkPublicIP } from '@iobroker/webserver';
@@ -76,7 +75,7 @@ interface WebStructure {
 
 export class N8NAdapter extends Adapter {
     declare config: N8NAdapterConfig;
-    private n8nProcess: Start | null = null;
+    private n8nProcess: any = null;
     private webServer: WebStructure = {
         server: null,
         io: null,
@@ -352,13 +351,20 @@ export class N8NAdapter extends Adapter {
         setDefaultAutoSelectFamily?.(false);
 
         // Find out of n8n is installed in '../../node_modules' or in '../node_modules'
-        const n8nDir = require.resolve('n8n');
+        let n8nDir = require.resolve('n8n');
         if (!n8nDir.toLowerCase().replace(/\\/g, '/').includes('iobroker.n8n/node_modules')) {
             // Run npm install in the current adapter directory
             const adapterDir = join(__dirname, '..');
-            this.log.debug(`Running npm install in the adapter directory: ${adapterDir}`);
-            execSync('npm install --omit=dev', { cwd: adapterDir, stdio: 'inherit' });
+            this.log.debug(
+                `Running npm install in the adapter directory: "${adapterDir}", because n8n is taken from "${n8nDir}".`,
+            );
+            const output = execSync('npm install --omit=dev', { cwd: adapterDir, stdio: 'inherit' });
+            console.log(output);
+            n8nDir = require.resolve('n8n');
+            console.log(`Now is n8n installed in "${n8nDir}".`);
         }
+        // @ts-expect-error import n8n from the node_modules
+        const Start = await import('n8n/dist/commands/start').Start;
 
         this.copyFilesToN8N();
 
@@ -370,7 +376,7 @@ export class N8NAdapter extends Adapter {
         // Create class instance
         this.n8nProcess = new Start([], config as any);
         const logger = new Logger(this.log);
-        // @ts-expect-error override logger
+        // @1ts-expect-error override logger
         this.n8nProcess.logger = logger as any;
         this.n8nProcess.log = (message: string, ...args: any[]): void => {
             // Convert args to a string if they are provided
