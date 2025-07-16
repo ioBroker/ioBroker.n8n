@@ -363,8 +363,7 @@ export class N8NAdapter extends Adapter {
             n8nDir = require.resolve('n8n');
             console.log(`Now is n8n installed in "${n8nDir}".`);
         }
-        // @ts-expect-error import n8n from the node_modules
-        const Start = await import('n8n/dist/commands/start').Start;
+        const Start = (await import('n8n/dist/commands/start.js')).Start;
 
         this.copyFilesToN8N();
 
