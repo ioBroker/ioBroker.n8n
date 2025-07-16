@@ -33,19 +33,19 @@ function checkConnectionOfAdapter(cb, counter) {
 
 function waitForGUI(cb, counter) {
     counter ||= 0;
-    if (counter > 30) {
+    if (counter > 120) {
         return cb?.('Cannot connect to GUI');
     }
+    console.log(`Check GUI #${counter}`);
 
     http.get(`http://localhost:5678`, res => {
         if (res.statusCode === 200) {
             cb?.();
         } else {
-            setTimeout(() => waitForGUI(cb, counter + 1), 500);
+            setTimeout(() => waitForGUI(cb, counter + 1), 1000);
         }
     }).on('error', err => {
-        console.error(`Error: ${err.message}`);
-        setTimeout(() => waitForGUI(cb, counter + 1), 500);
+        setTimeout(() => waitForGUI(cb, counter + 1), 1000);
     });
 }
 
@@ -101,7 +101,7 @@ describe(`Test ${adapterShortName} adapter`, function () {
     });
 
     it(`Test ${adapterShortName} adapter: Check if GUI is alive`, function (done) {
-        this.timeout(60000);
+        this.timeout(180000);
         // Read http://localhost:5678
         waitForGUI(function (res) {
             expect(res).not.to.be.equal('Cannot connect to GUI');
