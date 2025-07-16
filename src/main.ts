@@ -352,7 +352,7 @@ export class N8NAdapter extends Adapter {
 
         // Find out of n8n is installed in '../../node_modules' or in '../node_modules'
         let n8nDir = require.resolve('n8n');
-        if (!n8nDir.toLowerCase().replace(/\\/g, '/').includes('iobroker.n8n/node_modules')) {
+        if (!existsSync(`${__dirname}/../node_modules/n8n/dist/commands/start.js`)) {
             // Run npm install in the current adapter directory
             const adapterDir = join(__dirname, '..');
             this.log.debug(
@@ -360,10 +360,11 @@ export class N8NAdapter extends Adapter {
             );
             const output = execSync('npm install --omit=dev', { cwd: adapterDir, stdio: 'inherit' });
             console.log(output);
+            console.log(existsSync(`${__dirname}/../node_modules/n8n/dist/commands/start.js`));
             n8nDir = require.resolve('n8n');
             console.log(`Now is n8n installed in "${n8nDir}".`);
         }
-        const Start = (await import('n8n/dist/commands/start.js')).Start;
+        const Start = (await import(`file://${__dirname}/../node_modules/n8n/dist/commands/start.js`)).Start;
 
         this.copyFilesToN8N();
 
