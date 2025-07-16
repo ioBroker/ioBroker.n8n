@@ -407,6 +407,10 @@ export class N8NAdapter extends Adapter {
         this.webServer?.io?.close();
         this.webServer?.server?.close();
     }
+
+    public readIobLog(_level?: ioBroker.LogLevel, _count?: number): Promise<any[]> {
+        return Promise.resolve([]);
+    }
 }
 
 if (require.main !== module) {
