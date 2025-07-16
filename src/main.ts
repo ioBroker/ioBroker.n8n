@@ -1,11 +1,10 @@
 import { setDefaultResultOrder } from 'node:dns';
 import { setDefaultAutoSelectFamily } from 'node:net';
-import { execSync } from 'node:child_process';
+import { execSync, spawn } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readdirSync, lstatSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import express, { type Express, type NextFunction, type Request, type Response } from 'express';
 import session from 'express-session';
-import { Config } from './Config';
 import {
     Adapter,
     type AdapterOptions,
@@ -13,59 +12,16 @@ import {
     EXIT_CODES,
     commonTools,
 } from '@iobroker/adapter-core';
-process.env.N8N_RUNNERS_ENABLED = 'true';
-process.env.N8N_USER_FOLDER = join(getAbsoluteDefaultDataDir(), 'n8n');
-if (process.platform !== 'win32') {
-    process.env.N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS = 'false';
-}
-process.env.N8N_SECURE_COOKIE = 'false';
+
+const N8N_USER_FOLDER = join(getAbsoluteDefaultDataDir(), 'n8n');
+
+const N8N_VERSION = '1.102.3';
 
 import type { IOSocketClass } from 'iobroker.ws';
 import { WebServer, checkPublicIP } from '@iobroker/webserver';
 import type { N8NAdapterConfig } from './types';
 import { SocketAdmin, type Server, type Store, type SocketSettings } from '@iobroker/socket-classes';
 import { SocketIO } from '@iobroker/ws-server';
-
-import type { LogScope } from '@n8n/config';
-import type { Logger as LoggerType, LogMetadata } from 'n8n-workflow';
-
-class Logger implements LoggerType {
-    coreLogger: ioBroker.Logger;
-    constructor(coreLogger: ioBroker.Logger) {
-        this.coreLogger = coreLogger;
-    }
-    scoped(_scopes: LogScope | LogScope[]): Logger {
-        return this;
-    }
-    error(message: string, metadata?: LogMetadata): void {
-        if (metadata) {
-            // If metadata is provided, we can log it as an object
-            message = `${message} ${JSON.stringify(metadata)}`;
-        }
-        this.coreLogger.error(`[n8n] ${message}`);
-    }
-    warn(message: string, metadata?: LogMetadata): void {
-        if (metadata) {
-            // If metadata is provided, we can log it as an object
-            message = `${message} ${JSON.stringify(metadata)}`;
-        }
-        this.coreLogger.warn(`[n8n] ${message}`);
-    }
-    info(message: string, metadata?: LogMetadata): void {
-        if (metadata) {
-            // If metadata is provided, we can log it as an object
-            message = `${message} ${JSON.stringify(metadata)}`;
-        }
-        this.coreLogger.info(`[n8n] ${message}`);
-    }
-    debug(message: string, metadata?: LogMetadata): void {
-        if (metadata) {
-            // If metadata is provided, we can log it as an object
-            message = `${message} ${JSON.stringify(metadata)}`;
-        }
-        this.coreLogger.debug(`[n8n] ${message}`);
-    }
-}
 
 interface WebStructure {
     server: null | (Server & { __server: WebStructure });
@@ -85,6 +41,7 @@ export class N8NAdapter extends Adapter {
     private store: Store | null = null;
     private readonly bruteForce: { [userName: string]: { errors: number; time: number } } = {};
     private socket: SocketAdmin | null = null;
+    private killResolve: (() => void) | null = null;
 
     public constructor(options: Partial<AdapterOptions> = {}) {
         super({
@@ -279,9 +236,86 @@ export class N8NAdapter extends Adapter {
         this.initSocket(this.webServer.server);
     }
 
-    copyFilesToN8N(): void {
+    async installN8N(): Promise<string> {
+        const n8nDir = `${getAbsoluteDefaultDataDir()}n8n-engine`;
+        if (!existsSync(n8nDir)) {
+            mkdirSync(n8nDir);
+        }
+        let forceInstall = false;
+        if (!existsSync(`${n8nDir}/package.json`)) {
+            writeFileSync(
+                `${n8nDir}/package.json`,
+                JSON.stringify(
+                    {
+                        name: 'n8n-engin',
+                        version: '0.0.8',
+                        private: true,
+                        dependencies: {
+                            n8n: N8N_VERSION,
+                        },
+                    },
+                    null,
+                    4,
+                ),
+            );
+            forceInstall = true;
+        } else {
+            const pack = JSON.parse(readFileSync(`${n8nDir}/package.json`).toString());
+            if (pack.version !== N8N_VERSION) {
+                writeFileSync(
+                    `${n8nDir}/package.json`,
+                    JSON.stringify(
+                        {
+                            name: 'n8n-engin',
+                            version: '0.0.8',
+                            private: true,
+                            dependencies: {
+                                n8n: N8N_VERSION,
+                            },
+                        },
+                        null,
+                        4,
+                    ),
+                );
+                forceInstall = true;
+            }
+        }
+
+        if (forceInstall || !execSync(`${n8nDir}/node_modules`)) {
+            this.log.info('Executing n8n installation... Please wait.');
+            await new Promise<void>((resolve, reject) => {
+                // System call used for update of js-controller itself,
+                // because during an installation the npm packet will be deleted too, but some files must be loaded even during the install process.
+                this.log.debug(`executing: "npm install --omit=dev" in "${n8nDir}"`);
+                const child = spawn('npm', ['install', '--omit=dev'], { cwd: n8nDir });
+
+                child.stdout.on('data', (data: Buffer) => {
+                    this.log.debug(`[n8n-install] ${data.toString()}`);
+                });
+
+                child.stderr.on('data', (data: Buffer) => {
+                    this.log.error(`[n8n-install] ${data.toString()}`);
+                });
+
+                child.on('exit', (code /* , signal */) => {
+                    // code 1 is a strange error that cannot be explained. Everything is installed but error :(
+                    if (code && code !== 1) {
+                        reject(new Error(`Cannot install: ${code}`));
+                    } else {
+                        this.log.info('n8n is installed');
+                        // command succeeded
+                        resolve();
+                    }
+                });
+            });
+        }
+
+        return n8nDir;
+    }
+
+    copyFilesToN8N(n8nDir: string): void {
         const srcDir = join(__dirname, '..', 'n8n-nodes-iobroker', 'dist');
-        const dstDir = join(process.env.N8N_USER_FOLDER!, '.n8n', 'nodes', 'node_modules', 'n8n-nodes-iobroker');
+        const dstDir = join(N8N_USER_FOLDER, '.n8n', 'nodes', 'node_modules', 'n8n-nodes-iobroker');
         if (!existsSync(dstDir)) {
             mkdirSync(dstDir, { recursive: true });
         }
@@ -300,10 +334,7 @@ export class N8NAdapter extends Adapter {
             this.copyDirectory(nodesDir, join(dstDir, 'dist', 'nodes'));
         }
 
-        const dirNameWeb = require.resolve('n8n-editor-ui');
-        const parts = dirNameWeb.replace(/\\/g, '/').split('/');
-        parts.pop();
-        const distPath = `${parts.join('/')}/dist`;
+        const distPath = `${n8nDir}/node_modules/n8n-editor-ui/dist`;
         let indexHtml = readFileSync(`${distPath}/index.html`).toString();
         if (!indexHtml.includes('iobroker')) {
             // Place before first <title> tag the script
@@ -314,7 +345,7 @@ export class N8NAdapter extends Adapter {
         <script src="/assets/iobrokerSelectId.umd.js" crossorigin></script>
         <title>`,
             );
-            writeFileSync(`${parts.join('/')}/dist/index.html`, indexHtml);
+            writeFileSync(`${distPath}/index.html`, indexHtml);
         }
         copyFileSync(
             `${__dirname}/../n8n-nodes-iobroker/nodes/IoBrokerNodes/iobroker.js`,
@@ -351,28 +382,19 @@ export class N8NAdapter extends Adapter {
         setDefaultAutoSelectFamily?.(false);
 
         // Find out of n8n is installed in '../../node_modules' or in '../node_modules'
-        let n8nDir = require.resolve('n8n');
-        if (!existsSync(`${__dirname}/../node_modules/n8n/dist/commands/start.js`)) {
-            // Run npm install in the current adapter directory
-            const adapterDir = join(__dirname, '..');
-            this.log.debug(
-                `Running npm install in the adapter directory: "${adapterDir}", because n8n is taken from "${n8nDir}".`,
-            );
-            const output = execSync('npm install --omit=dev', { cwd: adapterDir, stdio: 'inherit' });
-            console.log(output);
-            console.log(existsSync(`${__dirname}/../node_modules/n8n/dist/commands/start.js`));
-            n8nDir = require.resolve('n8n');
-            console.log(`Now is n8n installed in "${n8nDir}".`);
-        }
-        const { Start } = require(`${__dirname}/../node_modules/n8n/dist/commands/start.js`);
+        const n8nDir = await this.installN8N();
 
-        this.copyFilesToN8N();
+        this.copyFilesToN8N(n8nDir);
 
         await this.startWebServer();
 
         // Start N8N process
+        /*
         // Simulate loading the configuration
         const config = await Config.load({});
+
+        const { Start } = require(`${__dirname}/../node_modules/n8n/dist/commands/start.js`);
+
         // Create class instance
         this.n8nProcess = new Start([], config as any);
         const logger = new Logger(this.log);
@@ -394,6 +416,40 @@ export class N8NAdapter extends Adapter {
 
         await this.n8nProcess.init();
         await this.n8nProcess.run();
+        */
+        const env: Record<string, string> = {
+            N8N_RUNNERS_ENABLED: 'true',
+            N8N_USER_FOLDER,
+            N8N_SECURE_COOKIE: 'false',
+            PATH: process.env.PATH!,
+        };
+        if (process.platform !== 'win32') {
+            env.N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS = 'false';
+        }
+
+        // System call used for update of js-controller itself,
+        // because during an installation the npm packet will be deleted too, but some files must be loaded even during the install process.
+        this.n8nProcess = spawn('node', ['node_modules/n8n/bin/n8n'], { cwd: n8nDir, env });
+
+        this.n8nProcess.stdout.on('data', (data: Buffer) => {
+            this.log.debug(`[n8n] ${data.toString()}`);
+        });
+
+        this.n8nProcess.stderr.on('data', (data: Buffer) => {
+            this.log.error(`[n8n] ${data.toString()}`);
+        });
+
+        this.n8nProcess.on('exit', (code: number /* , signal */) => {
+            // code 1 is a strange error that cannot be explained. Everything is installed but error :(
+            if (code && code !== 1) {
+                this.log.error(`n8n stopped with error: ${code}`);
+            } else {
+                // command succeeded
+                this.log.debug('n8n stopped');
+            }
+            this.n8nProcess = null;
+            this.killResolve?.();
+        });
     }
 
     private async destroyN8n(): Promise<void> {
@@ -402,14 +458,16 @@ export class N8NAdapter extends Adapter {
             this.checkTimeout = undefined;
         }
         this.log.info('Destroying N8N integration');
-        await this.n8nProcess?.stopProcess();
+        if (this.n8nProcess) {
+            const killPromise = new Promise<void>(resolve => {
+                this.killResolve = resolve;
+            });
+            this.n8nProcess?.kill();
+            await killPromise;
+        }
         // Clean up resources, close connections, etc.
         this.webServer?.io?.close();
         this.webServer?.server?.close();
-    }
-
-    public readIobLog(_level?: ioBroker.LogLevel, _count?: number): Promise<any[]> {
-        return Promise.resolve([]);
     }
 }
 
