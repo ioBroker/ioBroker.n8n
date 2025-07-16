@@ -29,7 +29,7 @@
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "iobroker.ws": "^3.0.19",
-    "n8n": "^1.98.2"
+    "n8n": "^1.102.3"
   },
   "devDependencies": {
     "@alcalzone/release-script": "^3.8.0",
