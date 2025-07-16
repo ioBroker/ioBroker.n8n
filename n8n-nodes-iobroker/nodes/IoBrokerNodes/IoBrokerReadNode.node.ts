@@ -8,6 +8,7 @@ import {
 	type IDataObject,
 	type ILoadOptionsFunctions,
 	type INodePropertyOptions,
+	NodeConnectionType,
 } from 'n8n-workflow';
 import { getAdapter } from './IobAdapter';
 
@@ -24,8 +25,8 @@ export class IoBrokerReadNode implements INodeType {
 			name: 'ioBroker Read',
 			color: '#144578',
 		},
-		inputs: ['main'], // NodeConnectionType.Main
-		outputs: ['main'], // NodeConnectionType.Main
+		inputs: [NodeConnectionType.Main], // NodeConnectionType.Main
+		outputs: [NodeConnectionType.Main], // NodeConnectionType.Main
 		usableAsTool: true,
 		properties: [
 			{

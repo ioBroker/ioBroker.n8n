@@ -65,7 +65,7 @@
   ],
   "scripts": {
     "check": "tsc --noEmit -p tsconfig.check.json",
-    "build": "tsc -p tsconfig.build.json && cd n8n-nodes-iobroker && npm run build",
+    "build": "tsc -p tsconfig.build.json && cd n8n-nodes-iobroker && npm i && npm run build",
     "lint": "eslint -c eslint.config.mjs",
     "test:package": "mocha test/package --exit",
     "test:integration": "npm run build && mocha test/testAdapter --exit",

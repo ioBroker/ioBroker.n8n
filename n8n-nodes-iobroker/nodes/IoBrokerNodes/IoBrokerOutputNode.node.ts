@@ -4,6 +4,7 @@ import {
 	type INodeExecutionData,
 	type INodeType,
 	type INodeTypeDescription,
+	NodeConnectionType,
 } from 'n8n-workflow';
 import { getAdapter } from './IobAdapter';
 
@@ -20,8 +21,8 @@ export class IoBrokerOutputNode implements INodeType {
 			name: 'ioBroker Output',
 			color: '#144578',
 		},
-		inputs: ['main'], // NodeConnectionType.Main
-		outputs: ['main'], // NodeConnectionType.Main
+		inputs: [NodeConnectionType.Main], // NodeConnectionType.Main
+		outputs: [NodeConnectionType.Main], // NodeConnectionType.Main
 		// usableAsTool: true,
 		properties: [
 			{

@@ -7,6 +7,7 @@ import {
 	type IBinaryData,
 	type ILoadOptionsFunctions,
 	type INodePropertyOptions,
+	NodeConnectionType,
 } from 'n8n-workflow';
 import {
 	getAdapter,
@@ -30,7 +31,7 @@ export class IoBrokerTriggerNode implements INodeType {
 			color: '#144578',
 		},
 		inputs: [],
-		outputs: ['main'], // NodeConnectionType.Main
+		outputs: [NodeConnectionType.Main], // NodeConnectionType.Main
 		// usableAsTool: true,
 		properties: [
 			{
