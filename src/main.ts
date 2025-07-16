@@ -289,13 +289,9 @@ export class N8NAdapter extends Adapter {
                 this.log.debug(`executing: "npm install --omit=dev" in "${n8nDir}"`);
                 const child = spawn('npm', ['install', '--omit=dev'], { cwd: n8nDir });
 
-                child.stdout.on('data', (data: Buffer) => {
-                    this.log.debug(`[n8n-install] ${data.toString()}`);
-                });
+                child.stdout.on('data', (data: Buffer) => this.log.debug(`[n8n-install] ${data.toString()}`));
 
-                child.stderr.on('data', (data: Buffer) => {
-                    this.log.error(`[n8n-install] ${data.toString()}`);
-                });
+                child.stderr.on('data', (data: Buffer) => this.log.debug(`[n8n-install] ${data.toString()}`));
 
                 child.on('exit', (code /* , signal */) => {
                     // code 1 is a strange error that cannot be explained. Everything is installed but error :(
