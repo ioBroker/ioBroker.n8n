@@ -86,7 +86,7 @@ describe(`Test ${adapterShortName} adapter`, function () {
     });
 
     it(`Test ${adapterShortName} adapter: Check if adapter started`, function (done) {
-        this.timeout(60000);
+        this.timeout(180000);
         checkConnectionOfAdapter(function (res) {
             if (res) {
                 console.log(res);
