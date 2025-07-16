@@ -1,0 +1,24 @@
+{
+  "i18n": true,
+  "type": "panel",
+  "items": {
+    "port": {
+      "type": "port",
+      "label": "Internal service port",
+      "help": "Via this port the GUI access the ioBroker Objects (default 5680)",
+      "xs": 12,
+      "sm": 12,
+      "md": 4
+    },
+    "doNotCheckPublicIP": {
+      "newLine": true,
+      "label": "Do not check if this instance is available from internet",
+      "type": "checkbox",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 6,
+      "hidden": "!!data.auth"
+    }
+  }
+}
