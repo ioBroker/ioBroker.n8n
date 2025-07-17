@@ -236,6 +236,39 @@ export class N8NAdapter extends Adapter {
         this.initSocket(this.webServer.server);
     }
 
+    getNpmCommand(n8nDir: string): string {
+        try {
+            const stdout = execSync('npm -v', { cwd: n8nDir });
+            if (stdout) {
+                return 'npm';
+            }
+        } catch {
+            // ignore
+        }
+        // Try to find path to npm
+        if (process.platform === 'win32') {
+            try {
+                const stdout = execSync('C:/Program Files/nodejs/npm.cmd -v', { cwd: n8nDir });
+                if (stdout) {
+                    return 'C:/Program Files/nodejs/npm.cmd';
+                }
+            } catch {
+                try {
+                    const stdout = execSync('where npm', { cwd: n8nDir });
+                    if (stdout?.toString().trim()) {
+                        return stdout.toString().trim();
+                    }
+                } catch {
+                    // ignore
+                }
+            }
+        }
+
+        this.log.warn('The location of npm is unknown!');
+
+        return 'npm';
+    }
+
     async installN8N(): Promise<string> {
         const n8nDir = `${getAbsoluteDefaultDataDir()}n8n-engine`;
         if (!existsSync(n8nDir)) {
@@ -281,13 +314,14 @@ export class N8NAdapter extends Adapter {
             }
         }
 
-        if (forceInstall || !execSync(`${n8nDir}/node_modules`)) {
+        if (forceInstall || !existsSync(`${n8nDir}/node_modules`)) {
             this.log.info('Executing n8n installation... Please wait.');
             await new Promise<void>((resolve, reject) => {
                 // System call used for update of js-controller itself,
                 // because during an installation the npm packet will be deleted too, but some files must be loaded even during the install process.
-                this.log.debug(`executing: "npm install --omit=dev" in "${n8nDir}"`);
-                const child = spawn('npm', ['install', '--omit=dev'], { cwd: n8nDir });
+                const npmCommand = this.getNpmCommand(n8nDir);
+                this.log.debug(`executing: "${npmCommand} install --omit=dev" in "${n8nDir}"`);
+                const child = spawn(npmCommand, ['install', '--omit=dev'], { cwd: n8nDir });
 
                 child.stdout.on('data', (data: Buffer) => this.log.debug(`[n8n-install] ${data.toString()}`));
 
