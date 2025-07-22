@@ -75,7 +75,7 @@
     "release-minor": "release-script minor --yes",
     "release-major": "release-script major --yes",
     "update-packages": "npx -y npm-check-updates --upgrade && cd n8n-nodes-iobroker && npx -y npm-check-updates --upgrade && cd ../src-iobroker && npx -y npm-check-updates --upgrade",
-    "npm": "npm i && cd n8n-nodes-iobroker && npm i"
+    "npm": "npm i && cd n8n-nodes-iobroker && npm i && cd ../src-iobroker && npm i -f"
   },
   "readmeFilename": "README.md"
 }
