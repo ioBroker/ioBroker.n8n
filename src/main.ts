@@ -22,6 +22,7 @@ import { WebServer, checkPublicIP } from '@iobroker/webserver';
 import type { N8NAdapterConfig } from './types';
 import { SocketAdmin, type Server, type Store, type SocketSettings } from '@iobroker/socket-classes';
 import { SocketIO } from '@iobroker/ws-server';
+import { exec } from 'child_process';
 
 interface WebStructure {
     server: null | (Server & { __server: WebStructure });
@@ -237,6 +238,25 @@ export class N8NAdapter extends Adapter {
     }
 
     getNpmCommand(n8nDir: string): string {
+        // Try to find a path to npm
+        if (process.platform === 'win32') {
+            try {
+                const stdout = execSync('"C:\\Program Files\\nodejs\\npm.cmd" -v', { cwd: n8nDir });
+                if (stdout) {
+                    return '"C:\\Program Files\\nodejs\\npm.cmd"';
+                }
+            } catch {
+                try {
+                    const stdout = execSync('where npm', { cwd: n8nDir });
+                    if (stdout?.toString().trim()) {
+                        return stdout.toString().trim().split('\n')[0].trim();
+                    }
+                } catch {
+                    // ignore
+                }
+            }
+        }
+
         try {
             const stdout = execSync('npm -v', { cwd: n8nDir });
             if (stdout) {
@@ -244,24 +264,6 @@ export class N8NAdapter extends Adapter {
             }
         } catch {
             // ignore
-        }
-        // Try to find path to npm
-        if (process.platform === 'win32') {
-            try {
-                const stdout = execSync('C:/Program Files/nodejs/npm.cmd -v', { cwd: n8nDir });
-                if (stdout) {
-                    return 'C:/Program Files/nodejs/npm.cmd';
-                }
-            } catch {
-                try {
-                    const stdout = execSync('where npm', { cwd: n8nDir });
-                    if (stdout?.toString().trim()) {
-                        return stdout.toString().trim();
-                    }
-                } catch {
-                    // ignore
-                }
-            }
         }
 
         this.log.warn('The location of npm is unknown!');
@@ -294,7 +296,7 @@ export class N8NAdapter extends Adapter {
             forceInstall = true;
         } else {
             const pack = JSON.parse(readFileSync(`${n8nDir}/package.json`).toString());
-            if (pack.version !== N8N_VERSION) {
+            if (pack.dependencies.n8n !== N8N_VERSION) {
                 writeFileSync(
                     `${n8nDir}/package.json`,
                     JSON.stringify(
@@ -315,17 +317,15 @@ export class N8NAdapter extends Adapter {
         }
 
         if (forceInstall || !existsSync(`${n8nDir}/node_modules`)) {
-            this.log.info('Executing n8n installation... Please wait.');
+            this.log.info('Executing n8n installation... Please wait it can take a while!');
             await new Promise<void>((resolve, reject) => {
-                // System call used for update of js-controller itself,
-                // because during an installation the npm packet will be deleted too, but some files must be loaded even during the install process.
                 const npmCommand = this.getNpmCommand(n8nDir);
                 this.log.debug(`executing: "${npmCommand} install --omit=dev" in "${n8nDir}"`);
-                const child = spawn(npmCommand, ['install', '--omit=dev'], { cwd: n8nDir });
+                const child = exec(`${npmCommand} install --omit=dev`, { cwd: n8nDir });
 
-                child.stdout.on('data', (data: Buffer) => this.log.debug(`[n8n-install] ${data.toString()}`));
+                child.stdout?.on('data', (data: Buffer) => this.log.debug(`[n8n-install] ${data.toString()}`));
 
-                child.stderr.on('data', (data: Buffer) => this.log.debug(`[n8n-install] ${data.toString()}`));
+                child.stderr?.on('data', (data: Buffer) => this.log.debug(`[n8n-install] ${data.toString()}`));
 
                 child.on('exit', (code /* , signal */) => {
                     // code 1 is a strange error that cannot be explained. Everything is installed but error :(
