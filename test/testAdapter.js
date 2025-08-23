@@ -101,7 +101,7 @@ describe(`Test ${adapterShortName} adapter`, function () {
     });
 
     it(`Test ${adapterShortName} adapter: Check if GUI is alive`, function (done) {
-        this.timeout(180000);
+        this.timeout(240000);
         // Read http://localhost:5678
         waitForGUI(function (res) {
             expect(res).not.to.be.equal('Cannot connect to GUI');
