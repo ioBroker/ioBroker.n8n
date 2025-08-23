@@ -15,7 +15,7 @@ import {
 
 const N8N_USER_FOLDER = join(getAbsoluteDefaultDataDir(), 'n8n');
 
-const N8N_VERSION = '1.102.3';
+const N8N_VERSION = '1.99.0';
 
 import type { IOSocketClass } from 'iobroker.ws';
 import { WebServer, checkPublicIP } from '@iobroker/webserver';
