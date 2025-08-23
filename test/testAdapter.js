@@ -33,7 +33,7 @@ function checkConnectionOfAdapter(cb, counter) {
 
 function waitForGUI(cb, counter) {
     counter ||= 0;
-    if (counter > 180) {
+    if (counter > 240) {
         return cb?.('Cannot connect to GUI');
     }
     console.log(`Check GUI #${counter}`);
