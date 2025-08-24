@@ -15,7 +15,9 @@ import {
 
 const N8N_USER_FOLDER = join(getAbsoluteDefaultDataDir(), 'n8n');
 
-const N8N_VERSION = '1.99.0';
+const pack = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
+// Read the version of n8n from the dependencies so dependabot can update it
+const N8N_VERSION = pack.devDependencies.n8n || pack.dependencies.n8n || '1.99.0';
 
 import type { IOSocketClass } from 'iobroker.ws';
 import { WebServer, checkPublicIP } from '@iobroker/webserver';
@@ -282,7 +284,7 @@ export class N8NAdapter extends Adapter {
                 `${n8nDir}/package.json`,
                 JSON.stringify(
                     {
-                        name: 'n8n-engin',
+                        name: 'n8n-engine',
                         version: '0.0.8',
                         private: true,
                         dependencies: {
@@ -301,7 +303,7 @@ export class N8NAdapter extends Adapter {
                     `${n8nDir}/package.json`,
                     JSON.stringify(
                         {
-                            name: 'n8n-engin',
+                            name: 'n8n-engine',
                             version: '0.0.8',
                             private: true,
                             dependencies: {
