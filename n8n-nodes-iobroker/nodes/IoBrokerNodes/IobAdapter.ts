@@ -1,4 +1,5 @@
 import { Adapter, type AdapterOptions, commonTools } from '@iobroker/adapter-core';
+import { controls, type IotExternalPatternControl } from './Utils';
 const pattern2RegEx = commonTools.pattern2RegEx;
 
 export type N8NAdapterConfig = {
@@ -87,6 +88,12 @@ export class N8NNodeAdapter extends Adapter {
 		state: {},
 		object: {},
 		file: {},
+	};
+	private ownLanguage: ioBroker.Languages = 'en';
+	private cache: { devices: IotExternalPatternControl[] | null; ts: number; withIcons: boolean } = {
+		devices: null,
+		ts: 0,
+		withIcons: false,
 	};
 
 	private handlers: {
@@ -193,6 +200,12 @@ export class N8NNodeAdapter extends Adapter {
 		instances: {
 			cb: (error: Error | null | undefined, instances?: { value: string; name: string }[]) => void;
 		}[];
+
+		readDevices: {
+			language?: ioBroker.Languages;
+			withIcons?: boolean;
+			cb: (error: Error | null | undefined, devices?: IotExternalPatternControl[] | null) => void;
+		}[];
 	} = {
 		getState: [],
 		setState: [],
@@ -204,6 +217,7 @@ export class N8NNodeAdapter extends Adapter {
 		writeLog: [],
 		readEnums: [],
 		instances: [],
+		readDevices: [],
 	};
 
 	public constructor(options: Partial<AdapterOptions> = {}) {
@@ -224,6 +238,12 @@ export class N8NNodeAdapter extends Adapter {
 	private async main(): Promise<void> {
 		this._ready = true;
 		this.log.info(`N8N Node Adapter started ${Object.keys(this.handlers.state).length}`);
+
+		// read system configuration
+		const systemObject = await this.getForeignObjectAsync('system.config');
+		if (systemObject?.common?.language) {
+			this.ownLanguage = systemObject.common.language;
+		}
 
 		// Subscribe on all requested states
 		const states = Object.keys(this.handlers.state);
@@ -362,6 +382,17 @@ export class N8NNodeAdapter extends Adapter {
 			}
 		}
 		this.requests.readEnums = [];
+
+		for (let s = 0; s < this.requests.readDevices.length; s++) {
+			const request = this.requests.readDevices[s];
+			try {
+				const devices = await this._readDevices(request.language, request.withIcons);
+				request.cb(null, devices);
+			} catch (error) {
+				request.cb(error);
+			}
+		}
+		this.requests.readDevices = [];
 
 		for (let s = 0; s < this.requests.instances.length; s++) {
 			const request = this.requests.instances[s];
@@ -1079,6 +1110,75 @@ export class N8NNodeAdapter extends Adapter {
 			}
 		}
 		return result;
+	}
+
+	public readIobDevices(
+		language?: ioBroker.Languages,
+		withIcons?: boolean,
+	): Promise<IotExternalPatternControl[]> {
+		if (this._ready) {
+			this.log.info(`Reading devices`);
+			return this._readDevices(language, withIcons);
+		}
+
+		return new Promise<IotExternalPatternControl[]>((resolve, reject): void => {
+			this.requests.readDevices.push({
+				language,
+				withIcons,
+				cb: (
+					error: Error | null | undefined,
+					devices?: IotExternalPatternControl[] | null,
+				): void => {
+					if (error) {
+						reject(new Error('Failed to read devices'));
+					} else {
+						resolve(devices || []);
+					}
+				},
+			});
+		});
+	}
+
+	private async _readDevices(
+		language?: ioBroker.Languages,
+		withIcons?: boolean,
+	): Promise<IotExternalPatternControl[]> {
+		if (
+			this.cache?.ts + 30000 > Date.now() &&
+			this.cache.devices &&
+			this.cache.withIcons === !!withIcons
+		) {
+			return this.cache.devices;
+		}
+		this.cache = {
+			ts: Date.now(),
+			devices: await controls(this as unknown as ioBroker.Adapter, language || this.ownLanguage),
+			withIcons: !!withIcons,
+		};
+
+		if (!withIcons && this.cache.devices) {
+			// Remove all icons
+			for (const device of this.cache.devices) {
+				if (device.object?.common.icon) {
+					delete device.object.common.icon;
+				}
+				if (device.functionality?.common.icon) {
+					delete device.functionality.common.icon;
+				}
+				if (device.room?.common.icon) {
+					delete device.room.common.icon;
+				}
+				if (device.states) {
+					for (const state of device.states) {
+						if (state.common.icon) {
+							delete state.common.icon;
+						}
+					}
+				}
+			}
+		}
+
+		return this.cache.devices || [];
 	}
 
 	private async _getInstances(): Promise<{ value: string; name: string }[]> {

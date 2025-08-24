@@ -326,6 +326,10 @@ class IoBrokerReadNode {
                     }
                 }
                 else if (type === 'devices') {
+                    const language = this.getNodeParameter('language', itemIndex, 'de');
+                    const withIcons = this.getNodeParameter('withIcons', itemIndex, false);
+                    const devices = await adapter.readIobDevices(language, withIcons);
+                    result.push({ json: { devices }, pairedItem: itemIndex });
                 }
             }
             catch (error) {

@@ -21,13 +21,13 @@ export class IoBrokerReadNode implements INodeType {
 		icon: 'file:ioBroker.svg',
 		version: 1,
 		description: 'ioBroker Read',
+		usableAsTool: true,
 		defaults: {
 			name: 'ioBroker Read',
 			color: '#144578',
 		},
 		inputs: [NodeConnectionType.Main], // NodeConnectionType.Main
 		outputs: [NodeConnectionType.Main], // NodeConnectionType.Main
-		usableAsTool: true,
 		properties: [
 			{
 				noDataExpression: true,
@@ -354,9 +354,10 @@ export class IoBrokerReadNode implements INodeType {
 						result.push({ json: { enums }, pairedItem: itemIndex });
 					}
 				} else if (type === 'devices') {
-					//const language = this.getNodeParameter('language', itemIndex, 'de') as ioBroker.Languages;
-					// const devices = await adapter.getIobEnums('devices', language);
-					// result.push({ json: { devices }, pairedItem: itemIndex });
+					const language = this.getNodeParameter('language', itemIndex, 'de') as ioBroker.Languages;
+					const withIcons = this.getNodeParameter('withIcons', itemIndex, false) as boolean;
+					const devices = await adapter.readIobDevices(language, withIcons);
+					result.push({ json: { devices }, pairedItem: itemIndex });
 				}
 			} catch (error) {
 				// This node should never fail, but we want to showcase how

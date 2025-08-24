@@ -32,7 +32,6 @@ export class IoBrokerTriggerNode implements INodeType {
 		},
 		inputs: [],
 		outputs: [NodeConnectionType.Main], // NodeConnectionType.Main
-		// usableAsTool: true,
 		properties: [
 			{
 				noDataExpression: true,

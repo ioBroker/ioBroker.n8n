@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.N8NNodeAdapter = void 0;
 exports.getAdapter = getAdapter;
 const adapter_core_1 = require("@iobroker/adapter-core");
+const Utils_1 = require("./Utils");
 const pattern2RegEx = adapter_core_1.commonTools.pattern2RegEx;
 function getText(text, language) {
     if (typeof text === 'string') {
@@ -32,6 +33,12 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
             object: {},
             file: {},
         };
+        this.ownLanguage = 'en';
+        this.cache = {
+            devices: null,
+            ts: 0,
+            withIcons: false,
+        };
         this.handlers = {
             state: {},
             file: {},
@@ -49,6 +56,7 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
             writeLog: [],
             readEnums: [],
             instances: [],
+            readDevices: [],
         };
         this.onLog = (message) => {
             const nodeIds = Object.keys(this.handlers.log);
@@ -79,9 +87,13 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
         this.on('log', this.onLog);
     }
     async main() {
-        var _a;
+        var _a, _b;
         this._ready = true;
         this.log.info(`N8N Node Adapter started ${Object.keys(this.handlers.state).length}`);
+        const systemObject = await this.getForeignObjectAsync('system.config');
+        if ((_a = systemObject === null || systemObject === void 0 ? void 0 : systemObject.common) === null || _a === void 0 ? void 0 : _a.language) {
+            this.ownLanguage = systemObject.common.language;
+        }
         const states = Object.keys(this.handlers.state);
         for (let i = 0; i < states.length; i++) {
             const nodeId = states[i];
@@ -105,7 +117,7 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
         }
         if (Object.keys(this.handlers.log).length) {
             this.log.info(`Subscribing to logs for ${Object.keys(this.handlers.log).length} nodes`);
-            await ((_a = this.requireLog) === null || _a === void 0 ? void 0 : _a.call(this, true));
+            await ((_b = this.requireLog) === null || _b === void 0 ? void 0 : _b.call(this, true));
         }
         for (let s = 0; s < this.requests.getState.length; s++) {
             const request = this.requests.getState[s];
@@ -209,6 +221,17 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
             }
         }
         this.requests.readEnums = [];
+        for (let s = 0; s < this.requests.readDevices.length; s++) {
+            const request = this.requests.readDevices[s];
+            try {
+                const devices = await this._readDevices(request.language, request.withIcons);
+                request.cb(null, devices);
+            }
+            catch (error) {
+                request.cb(error);
+            }
+        }
+        this.requests.readDevices = [];
         for (let s = 0; s < this.requests.instances.length; s++) {
             const request = this.requests.instances[s];
             try {
@@ -821,6 +844,60 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
             }
         }
         return result;
+    }
+    readIobDevices(language, withIcons) {
+        if (this._ready) {
+            this.log.info(`Reading devices`);
+            return this._readDevices(language, withIcons);
+        }
+        return new Promise((resolve, reject) => {
+            this.requests.readDevices.push({
+                language,
+                withIcons,
+                cb: (error, devices) => {
+                    if (error) {
+                        reject(new Error('Failed to read devices'));
+                    }
+                    else {
+                        resolve(devices || []);
+                    }
+                },
+            });
+        });
+    }
+    async _readDevices(language, withIcons) {
+        var _a, _b, _c, _d;
+        if (((_a = this.cache) === null || _a === void 0 ? void 0 : _a.ts) + 30000 > Date.now() &&
+            this.cache.devices &&
+            this.cache.withIcons === !!withIcons) {
+            return this.cache.devices;
+        }
+        this.cache = {
+            ts: Date.now(),
+            devices: await (0, Utils_1.controls)(this, language || this.ownLanguage),
+            withIcons: !!withIcons,
+        };
+        if (!withIcons && this.cache.devices) {
+            for (const device of this.cache.devices) {
+                if ((_b = device.object) === null || _b === void 0 ? void 0 : _b.common.icon) {
+                    delete device.object.common.icon;
+                }
+                if ((_c = device.functionality) === null || _c === void 0 ? void 0 : _c.common.icon) {
+                    delete device.functionality.common.icon;
+                }
+                if ((_d = device.room) === null || _d === void 0 ? void 0 : _d.common.icon) {
+                    delete device.room.common.icon;
+                }
+                if (device.states) {
+                    for (const state of device.states) {
+                        if (state.common.icon) {
+                            delete state.common.icon;
+                        }
+                    }
+                }
+            }
+        }
+        return this.cache.devices || [];
     }
     async _getInstances() {
         const result = await this.getObjectViewAsync('system', 'instance', {

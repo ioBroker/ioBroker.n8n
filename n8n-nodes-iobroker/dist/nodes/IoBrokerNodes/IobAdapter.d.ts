@@ -1,4 +1,5 @@
 import { Adapter, type AdapterOptions } from '@iobroker/adapter-core';
+import { type IotExternalPatternControl } from './Utils';
 export type N8NAdapterConfig = {
     bind: string;
     port: number;
@@ -61,6 +62,8 @@ export declare class N8NNodeAdapter extends Adapter {
     config: N8NAdapterConfig;
     private _ready;
     private subscribes;
+    private ownLanguage;
+    private cache;
     private handlers;
     private requests;
     constructor(options?: Partial<AdapterOptions>);
@@ -83,6 +86,8 @@ export declare class N8NNodeAdapter extends Adapter {
     readIobLog(level?: ioBroker.LogLevel, instance?: string, count?: number): Promise<ioBroker.LogMessage[]>;
     readIobEnums(type: string, language?: ioBroker.Languages, withIcons?: boolean): Promise<EnumResponse[]>;
     private _readEnums;
+    readIobDevices(language?: ioBroker.Languages, withIcons?: boolean): Promise<IotExternalPatternControl[]>;
+    private _readDevices;
     private _getInstances;
     getInstances(): Promise<{
         value: string;

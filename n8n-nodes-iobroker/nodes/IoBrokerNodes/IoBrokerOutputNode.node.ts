@@ -21,9 +21,8 @@ export class IoBrokerOutputNode implements INodeType {
 			name: 'ioBroker Output',
 			color: '#144578',
 		},
-		inputs: [NodeConnectionType.Main], // NodeConnectionType.Main
-		outputs: [NodeConnectionType.Main], // NodeConnectionType.Main
-		// usableAsTool: true,
+		inputs: [NodeConnectionType.Main],
+		outputs: [NodeConnectionType.Main],
 		properties: [
 			{
 				noDataExpression: true,

@@ -1,3 +1,5 @@
+// This is GUI file that will be loaded by n8n GUI to open the ioBroker object selector
+
 function openSelectDialogNewTab(item, allowAll) {
 	let dialog = null;
 	window._iobChannel ||= new BroadcastChannel('ioBrokerChannel');
