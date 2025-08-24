@@ -46,6 +46,7 @@ jobs:
         steps:
             - uses: ioBroker/testing-action-adapter@v1
               with:
+                  build: true
                   node-version: ${{ matrix.node-version }}
                   os: ${{ matrix.os }}
                   # Uncomment the following line if your adapter cannot be installed using 'npm ci'
@@ -75,6 +76,7 @@ jobs:
             - uses: ioBroker/testing-action-deploy@v1
               with:
                   node-version: '22.x'
+                  build: true
                   # Uncomment the following line if your adapter cannot be installed using 'npm ci'
                   # install-command: 'npm install'
                   npm-token: ${{ secrets.NPM_TOKEN }}
