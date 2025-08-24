@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "n8n",
-    "version": "0.0.13",
+    "version": "0.1.0",
     "news": {
+      "0.1.0": {
+        "en": "Implemented read devices",
+        "de": "Implementierte Lesegeräte",
+        "ru": "Внедренные устройства чтения",
+        "pt": "Dispositivos de leitura implementados",
+        "nl": "Uitgevoerde leesapparaten",
+        "fr": "Dispositifs de lecture mis en œuvre",
+        "it": "Dispositivi di lettura implementati",
+        "es": "Dispositivos de lectura aplicados",
+        "pl": "Wdrożone urządzenia do odczytu",
+        "uk": "Реалізовані пристрої для читання",
+        "zh-cn": "已执行的读取设备"
+      },
       "0.0.13": {
         "en": "initial commit",
         "de": "erstbestellung",

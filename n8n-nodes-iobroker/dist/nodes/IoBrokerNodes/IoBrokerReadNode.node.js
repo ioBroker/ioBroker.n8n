@@ -13,13 +13,13 @@ class IoBrokerReadNode {
             icon: 'file:ioBroker.svg',
             version: 1,
             description: 'ioBroker Read',
+            usableAsTool: true,
             defaults: {
                 name: 'ioBroker Read',
                 color: '#144578',
             },
             inputs: ["main"],
             outputs: ["main"],
-            usableAsTool: true,
             properties: [
                 {
                     noDataExpression: true,
