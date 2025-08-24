@@ -13,7 +13,9 @@ const express_1 = __importDefault(require("express"));
 const express_session_1 = __importDefault(require("express-session"));
 const adapter_core_1 = require("@iobroker/adapter-core");
 const N8N_USER_FOLDER = (0, node_path_1.join)((0, adapter_core_1.getAbsoluteDefaultDataDir)(), 'n8n');
-const N8N_VERSION = '1.99.0';
+const pack = JSON.parse((0, node_fs_1.readFileSync)((0, node_path_1.join)(__dirname, '..', 'package.json'), 'utf-8'));
+// Read the version of n8n from the dependencies so dependabot can update it
+const N8N_VERSION = pack.devDependencies.n8n || pack.dependencies.n8n || '1.99.0';
 const webserver_1 = require("@iobroker/webserver");
 const socket_classes_1 = require("@iobroker/socket-classes");
 const ws_server_1 = require("@iobroker/ws-server");
@@ -243,7 +245,7 @@ class N8NAdapter extends adapter_core_1.Adapter {
         let forceInstall = false;
         if (!(0, node_fs_1.existsSync)(`${n8nDir}/package.json`)) {
             (0, node_fs_1.writeFileSync)(`${n8nDir}/package.json`, JSON.stringify({
-                name: 'n8n-engin',
+                name: 'n8n-engine',
                 version: '0.0.8',
                 private: true,
                 dependencies: {
@@ -256,7 +258,7 @@ class N8NAdapter extends adapter_core_1.Adapter {
             const pack = JSON.parse((0, node_fs_1.readFileSync)(`${n8nDir}/package.json`).toString());
             if (pack.dependencies.n8n !== N8N_VERSION) {
                 (0, node_fs_1.writeFileSync)(`${n8nDir}/package.json`, JSON.stringify({
-                    name: 'n8n-engin',
+                    name: 'n8n-engine',
                     version: '0.0.8',
                     private: true,
                     dependencies: {
