@@ -24,6 +24,9 @@ With _n8n Adapter_ you can edit and execute [n8n](https://n8n.io/) workflows dir
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+* (bluefox) Implemented read devices
+
 ### 0.0.13 (2025-08-24)
 * (bluefox) initial commit
 
