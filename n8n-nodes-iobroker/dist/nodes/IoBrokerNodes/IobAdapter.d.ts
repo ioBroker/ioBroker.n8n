@@ -76,12 +76,17 @@ export declare class N8NNodeAdapter extends Adapter {
     private subscribeOnObject;
     private subscribeOnFile;
     registerHandler(handler: IobStateSubscription | IobObjectSubscription | IobFileSubscription | IobLogSubscription): Promise<void>;
-    setIobObject(oid: string, obj: ioBroker.Object): Promise<{
+    setIobObject(oid: string, obj: Partial<ioBroker.Object>): Promise<{
         id: string;
     }>;
     getIobObject(oid: string): Promise<ioBroker.Object | null | undefined>;
     setIobState(oid: string, state: ioBroker.SettableState): Promise<string>;
     getIobState(oid: string): Promise<ioBroker.State | null | undefined>;
+    setIobFile(oid: string, fileName: string, file: Buffer | string, base64?: boolean): Promise<void>;
+    getIobFile(oid: string, fileName: string, base64?: boolean): Promise<{
+        file: string | Buffer;
+        mimeType?: string;
+    } | null>;
     writeIobLog(message: string, level?: ioBroker.LogLevel): void;
     readIobLog(level?: ioBroker.LogLevel, instance?: string, count?: number): Promise<ioBroker.LogMessage[]>;
     readIobEnums(type: string, language?: ioBroker.Languages, withIcons?: boolean): Promise<EnumResponse[]>;

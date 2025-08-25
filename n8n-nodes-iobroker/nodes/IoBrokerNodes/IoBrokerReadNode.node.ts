@@ -111,6 +111,18 @@ export class IoBrokerReadNode implements INodeType {
 				},
 			},
 			{
+				displayName: 'Content as base64',
+				name: 'base64',
+				type: 'boolean',
+				default: false,
+				required: false,
+				displayOptions: {
+					show: {
+						type: ['file'],
+					},
+				},
+			},
+			{
 				displayName: 'Number of logs',
 				name: 'logsCount',
 				type: 'number',
@@ -296,7 +308,8 @@ export class IoBrokerReadNode implements INodeType {
 				} else if (type === 'file') {
 					const oid = this.getNodeParameter('oid', itemIndex, '') as string;
 					const fileName = this.getNodeParameter('fileName', itemIndex, '') as string;
-					const file = await adapter.readFileAsync(oid, fileName);
+					const base64 = this.getNodeParameter('base64', itemIndex, '') as boolean;
+					const file = await adapter.getIobFile(oid, fileName, base64);
 					result.push({
 						json: {
 							fileName,

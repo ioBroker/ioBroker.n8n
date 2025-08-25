@@ -1,5 +1,6 @@
 import { Adapter, type AdapterOptions, commonTools } from '@iobroker/adapter-core';
 import { controls, type IotExternalPatternControl } from './Utils';
+import { readLastLogFile } from './LogUtils';
 const pattern2RegEx = commonTools.pattern2RegEx;
 
 export type N8NAdapterConfig = {
@@ -155,7 +156,7 @@ export class N8NNodeAdapter extends Adapter {
 		}[];
 		setObject: {
 			oid: string;
-			obj: ioBroker.Object;
+			obj: Partial<ioBroker.Object>;
 			cb: (
 				error: Error | null | undefined,
 				obj?: {
@@ -167,14 +168,16 @@ export class N8NNodeAdapter extends Adapter {
 		getFile: {
 			oid: string;
 			fileName: string;
+			base64?: boolean;
 			cb: (
 				error: Error | null | undefined,
-				file?: { file: string | Buffer; mimeType?: string },
+				file?: { file: string | Buffer; mimeType?: string } | null,
 			) => void;
 		}[];
 		setFile: {
 			oid: string;
 			fileName: string;
+			base64?: boolean;
 			file: Buffer | string;
 			cb: (error: Error | null) => void;
 		}[];
@@ -314,7 +317,7 @@ export class N8NNodeAdapter extends Adapter {
 		for (let s = 0; s < this.requests.setObject.length; s++) {
 			const request = this.requests.setObject[s];
 			try {
-				const result = await this.setForeignObjectAsync(request.oid, request.obj);
+				const result = await this.setIobObject(request.oid, request.obj);
 				request.cb(null, result);
 			} catch (error) {
 				request.cb(error);
@@ -326,6 +329,9 @@ export class N8NNodeAdapter extends Adapter {
 			const request = this.requests.getFile[s];
 			try {
 				const file = await this.readFileAsync(request.oid, request.fileName);
+				if (request.base64 && file.file) {
+					file.file = Buffer.from(file.file).toString('base64');
+				}
 				request.cb(null, file);
 			} catch (error) {
 				request.cb(error);
@@ -336,6 +342,9 @@ export class N8NNodeAdapter extends Adapter {
 		for (let s = 0; s < this.requests.setFile.length; s++) {
 			const request = this.requests.setFile[s];
 			try {
+				if (request.base64 && typeof request.file === 'string') {
+					request.file = Buffer.from(request.file, 'base64');
+				}
 				await this.writeFileAsync(request.oid, request.fileName, request.file);
 				request.cb(null);
 			} catch (error) {
@@ -348,7 +357,15 @@ export class N8NNodeAdapter extends Adapter {
 			const request = this.requests.getLogs[s];
 			try {
 				// const messages = await this.getLogsAsync();
-				request.cb(null, []);
+				request.cb(
+					null,
+					await readLastLogFile(
+						this as unknown as ioBroker.Adapter,
+						request.level,
+						request.instance,
+						request.count,
+					),
+				);
 			} catch (error) {
 				request.cb(error);
 			}
@@ -912,9 +929,30 @@ export class N8NNodeAdapter extends Adapter {
 		}
 	}
 
-	public async setIobObject(oid: string, obj: ioBroker.Object): Promise<{ id: string }> {
+	public async setIobObject(oid: string, obj: Partial<ioBroker.Object>): Promise<{ id: string }> {
 		if (this._ready) {
-			return this.setForeignObjectAsync(oid, obj);
+			try {
+				// read the object first
+				let existingObj = await this.getForeignObjectAsync(oid);
+				if (existingObj) {
+					// merge it
+					if (obj.common) {
+						existingObj.common = existingObj.common || {};
+						existingObj.common = { ...existingObj.common, ...obj.common } as ioBroker.ObjectCommon;
+					}
+					if (obj.native) {
+						existingObj.native = existingObj.native || {};
+						existingObj.native = { ...existingObj.native, ...obj.native };
+					}
+				} else {
+					// make sure the _id is set
+					existingObj = obj as ioBroker.Object;
+				}
+				// and set it
+				return this.setForeignObjectAsync(oid, existingObj);
+			} catch {
+				return this.setForeignObjectAsync(oid, obj as ioBroker.Object);
+			}
 		}
 
 		return new Promise<{ id: string }>((resolve, reject): void => {
@@ -931,6 +969,7 @@ export class N8NNodeAdapter extends Adapter {
 			});
 		});
 	}
+
 	public async getIobObject(oid: string): Promise<ioBroker.Object | null | undefined> {
 		if (this._ready) {
 			return this.getForeignObjectAsync(oid);
@@ -969,6 +1008,7 @@ export class N8NNodeAdapter extends Adapter {
 			});
 		});
 	}
+
 	public async getIobState(oid: string): Promise<ioBroker.State | null | undefined> {
 		if (this._ready) {
 			return this.getForeignStateAsync(oid);
@@ -988,6 +1028,70 @@ export class N8NNodeAdapter extends Adapter {
 		});
 	}
 
+	public async setIobFile(
+		oid: string,
+		fileName: string,
+		file: Buffer | string,
+		base64?: boolean,
+	): Promise<void> {
+		if (this._ready) {
+			if (base64 && typeof file === 'string') {
+				file = Buffer.from(file, 'base64');
+			}
+			return this.writeFileAsync(oid, fileName, file);
+		}
+
+		return new Promise<void>((resolve, reject): void => {
+			this.requests.setFile.push({
+				oid,
+				fileName,
+				file,
+				base64,
+				cb: (error: Error | null | undefined): void => {
+					if (error) {
+						reject(new Error(`Failed to set object ${oid}`));
+					} else {
+						resolve();
+					}
+				},
+			});
+		});
+	}
+
+	public async getIobFile(
+		oid: string,
+		fileName: string,
+		base64?: boolean,
+	): Promise<{ file: string | Buffer; mimeType?: string } | null> {
+		if (this._ready) {
+			const data = await this.readFileAsync(oid, fileName);
+			if (base64 && data.file) {
+				data.file = Buffer.from(data.file).toString('base64');
+			}
+			return data || null;
+		}
+
+		return new Promise<{ file: string | Buffer; mimeType?: string } | null>(
+			(resolve, reject): void => {
+				this.requests.getFile.push({
+					oid,
+					fileName,
+					base64,
+					cb: (
+						error: Error | null | undefined,
+						result?: { file: string | Buffer; mimeType?: string } | null,
+					): void => {
+						if (error) {
+							reject(new Error(`Failed to write file ${oid}`));
+						} else {
+							resolve(result || null);
+						}
+					},
+				});
+			},
+		);
+	}
+
 	public writeIobLog(message: string, level?: ioBroker.LogLevel): void {
 		if (this._ready) {
 			this.log[level || 'info'](message);
@@ -995,14 +1099,14 @@ export class N8NNodeAdapter extends Adapter {
 			this.requests.writeLog.push({ message, level: level || 'info' });
 		}
 	}
-	public readIobLog(
+
+	public async readIobLog(
 		level?: ioBroker.LogLevel,
 		instance?: string,
 		count?: number,
 	): Promise<ioBroker.LogMessage[]> {
 		if (this._ready) {
-			// Not implemented yet
-			return Promise.resolve([]);
+			return await readLastLogFile(this as unknown as ioBroker.Adapter, level, instance, count);
 		}
 		return new Promise<ioBroker.LogMessage[]>((resolve, reject): void => {
 			this.requests.getLogs.push({
@@ -1011,7 +1115,7 @@ export class N8NNodeAdapter extends Adapter {
 				count,
 				cb: (error: Error | null | undefined, result?: ioBroker.LogMessage[]): void => {
 					if (error) {
-						reject(new Error(`Failed to read logs`));
+						reject(new Error(`Failed to read logs: ${error}`));
 					} else {
 						resolve(result || []);
 					}

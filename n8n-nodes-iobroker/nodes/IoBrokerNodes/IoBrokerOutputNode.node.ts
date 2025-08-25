@@ -88,12 +88,37 @@ export class IoBrokerOutputNode implements INodeType {
 				},
 			},
 			{
+				displayName: 'Content as base64',
+				name: 'base64',
+				type: 'boolean',
+				default: false,
+				required: false,
+				displayOptions: {
+					show: {
+						type: ['file'],
+					},
+				},
+			},
+			{
 				displayName: 'Value',
 				name: 'val',
 				type: 'string',
 				default: '',
 				required: true,
 				placeholder: 'Value or JSON object',
+			},
+			{
+				displayName: 'Acknowledgment',
+				name: 'ack',
+				type: 'boolean',
+				default: false,
+				required: false,
+				placeholder: 'ack',
+				displayOptions: {
+					show: {
+						type: ['state'],
+					},
+				},
 			},
 			{
 				displayName: 'Log Level',
@@ -135,8 +160,9 @@ export class IoBrokerOutputNode implements INodeType {
 		const items = this.getInputData();
 
 		let type: 'state' | 'object' | undefined;
-		let val = '';
+		let val: ioBroker.StateValue = '';
 		let oid = '';
+		let ack = false;
 		const adapter = await getAdapter();
 
 		// Iterates over all input items and add the key "myString" with the
@@ -164,6 +190,18 @@ export class IoBrokerOutputNode implements INodeType {
 						);
 					}
 				} else if (type === 'state') {
+					const _ack = this.getNodeParameter('ack', itemIndex, '') as any;
+					ack = _ack === true || _ack === 'true' || _ack === 1 || _ack === '1';
+
+					// May be it is a JSON object
+					if (typeof val === 'string' && val.startsWith('{') && val.endsWith('}')) {
+						const parsedState = JSON.parse(val);
+						if (typeof parsedState.val !== 'undefined') {
+							val = parsedState.val;
+							ack = parsedState.ack ?? ack;
+						}
+					}
+
 					// For state type, we assume val is a simple value
 					const obj = await adapter.getIobObject(oid);
 					if (!obj) {
@@ -173,65 +211,86 @@ export class IoBrokerOutputNode implements INodeType {
 						throw new NodeOperationError(this.getNode(), `OID ${oid} is not a state object.`);
 					}
 					if (obj.common?.type === 'number') {
-						if (typeof val === 'string' && val.startsWith('{') && val.endsWith('}')) {
-							// If the value is a JSON object, parse it
-							const parsedState = JSON.parse(val);
-							if (typeof parsedState.val !== 'number') {
-								throw new NodeOperationError(
-									this.getNode(),
-									`Value for OID ${oid} must be a number.`,
-								);
-							}
-							await adapter.setIobState(oid, parsedState);
+						if (val === null) {
+							await adapter.setIobState(oid, { val, ack });
+						} else if (typeof val === 'string') {
+							await adapter.setIobState(oid, { val: parseFloat(val), ack });
+						} else if (typeof val === 'number') {
+							await adapter.setIobState(oid, { val, ack });
+						} else if (typeof val === 'boolean') {
+							await adapter.setIobState(oid, { val: val ? 1 : 0, ack });
 						} else {
-							await adapter.setIobState(oid, { val: parseFloat(val), ack: false });
+							throw new NodeOperationError(
+								this.getNode(),
+								`Value for OID ${oid} must be a number.`,
+							);
 						}
 					} else if (obj.common?.type === 'boolean') {
-						if (typeof val === 'string' && val.startsWith('{') && val.endsWith('}')) {
-							// If the value is a JSON object, parse it
-							const parsedState = JSON.parse(val);
-							if (typeof parsedState.val !== 'boolean') {
-								throw new NodeOperationError(
-									this.getNode(),
-									`Value for OID ${oid} must be a boolean.`,
-								);
-							}
-							await adapter.setIobState(oid, parsedState);
+						if (val === null) {
+							await adapter.setIobState(oid, { val, ack });
+						} else if (typeof val === 'string') {
+							await adapter.setIobState(oid, {
+								val: val.toLowerCase() === 'true' || val === '1',
+								ack,
+							});
+						} else if (typeof val === 'boolean') {
+							await adapter.setIobState(oid, { val, ack });
+						} else if (typeof val === 'number') {
+							await adapter.setIobState(oid, { val: !!val, ack });
 						} else {
-							await adapter.setIobState(oid, { val: val.toLowerCase() === 'true', ack: false });
+							throw new NodeOperationError(
+								this.getNode(),
+								`Value for OID ${oid} must be a boolean.`,
+							);
 						}
 					} else if (obj.common?.type === 'string') {
-						if (typeof val === 'string' && val.startsWith('{') && val.endsWith('}')) {
-							// If the value is a JSON object, parse it
-							const parsedState = JSON.parse(val);
-							if (typeof parsedState.val !== 'string') {
-								throw new NodeOperationError(
-									this.getNode(),
-									`Value for OID ${oid} must be a string.`,
-								);
-							}
-							await adapter.setIobState(oid, parsedState);
+						if (val === null) {
+							await adapter.setIobState(oid, { val, ack });
+						} else if (typeof val === 'string') {
+							await adapter.setIobState(oid, { val, ack });
+						} else if (typeof val === 'number' || typeof val === 'boolean') {
+							// Convert number or boolean to string
+							await adapter.setIobState(oid, { val: val.toString(), ack });
 						} else {
-							await adapter.setIobState(oid, { val: val.toString(), ack: false });
+							// For other types, convert to string
+							await adapter.setIobState(oid, { val: JSON.stringify(val), ack });
 						}
 					} else {
 						// For other types, we assume val is a simple value
-						if (typeof val === 'string' && val.startsWith('{') && val.endsWith('}')) {
-							// If the value is a JSON object, parse it
-							const parsedState = JSON.parse(val);
-							await adapter.setIobState(oid, parsedState);
-						} else {
-							await adapter.setIobState(oid, { val, ack: false });
-						}
+						await adapter.setIobState(oid, { val, ack: false });
 					}
 				} else if (type === 'file') {
-					// later
+					const fileName = this.getNodeParameter('fileName', itemIndex, '') as string;
+					const base64 = this.getNodeParameter('base64', itemIndex, '') as boolean;
+					if (!oid) {
+						throw new NodeOperationError(this.getNode(), 'For file type, OID must be provided.');
+					}
+					if (!fileName) {
+						throw new NodeOperationError(this.getNode(), 'For file type, path must be provided.');
+					}
+					// For file type, we assume val is the file content
+					// Here, we write the file to the specified path
+					await adapter.setIobFile(oid, fileName, val, base64);
+					// Note: Error handling for file operations can be improved
 				} else if (type === 'log') {
+					const level: ioBroker.LogLevel = this.getNodeParameter(
+						'level',
+						itemIndex,
+						'',
+					) as ioBroker.LogLevel;
 					// For log type, we assume val is a string message
 					if (typeof val !== 'string') {
 						throw new NodeOperationError(this.getNode(), `Value for log must be a string.`);
 					}
-					adapter.writeIobLog(val, 'info');
+					if (level === 'error') {
+						adapter.writeIobLog(val, 'error');
+					} else if (level === 'warn') {
+						adapter.writeIobLog(val, 'warn');
+					} else if (level === 'debug') {
+						adapter.writeIobLog(val, 'debug');
+					} else {
+						adapter.writeIobLog(val, 'info');
+					}
 				}
 			} catch (error) {
 				// This node should never fail, but we want to showcase how

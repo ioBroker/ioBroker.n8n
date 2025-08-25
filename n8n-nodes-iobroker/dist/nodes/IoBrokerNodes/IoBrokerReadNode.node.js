@@ -103,6 +103,18 @@ class IoBrokerReadNode {
                     },
                 },
                 {
+                    displayName: 'Content as base64',
+                    name: 'base64',
+                    type: 'boolean',
+                    default: false,
+                    required: false,
+                    displayOptions: {
+                        show: {
+                            type: ['file'],
+                        },
+                    },
+                },
+                {
                     displayName: 'Number of logs',
                     name: 'logsCount',
                     type: 'number',
@@ -272,7 +284,8 @@ class IoBrokerReadNode {
                 else if (type === 'file') {
                     const oid = this.getNodeParameter('oid', itemIndex, '');
                     const fileName = this.getNodeParameter('fileName', itemIndex, '');
-                    const file = await adapter.readFileAsync(oid, fileName);
+                    const base64 = this.getNodeParameter('base64', itemIndex, '');
+                    const file = await adapter.getIobFile(oid, fileName, base64);
                     result.push({
                         json: {
                             fileName,

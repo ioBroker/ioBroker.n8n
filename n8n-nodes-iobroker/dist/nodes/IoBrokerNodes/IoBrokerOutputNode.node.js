@@ -84,12 +84,37 @@ class IoBrokerOutputNode {
                     },
                 },
                 {
+                    displayName: 'Content as base64',
+                    name: 'base64',
+                    type: 'boolean',
+                    default: false,
+                    required: false,
+                    displayOptions: {
+                        show: {
+                            type: ['file'],
+                        },
+                    },
+                },
+                {
                     displayName: 'Value',
                     name: 'val',
                     type: 'string',
                     default: '',
                     required: true,
                     placeholder: 'Value or JSON object',
+                },
+                {
+                    displayName: 'Acknowledgment',
+                    name: 'ack',
+                    type: 'boolean',
+                    default: false,
+                    required: false,
+                    placeholder: 'ack',
+                    displayOptions: {
+                        show: {
+                            type: ['state'],
+                        },
+                    },
                 },
                 {
                     displayName: 'Log Level',
@@ -124,11 +149,12 @@ class IoBrokerOutputNode {
         };
     }
     async execute() {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         const items = this.getInputData();
         let type;
         let val = '';
         let oid = '';
+        let ack = false;
         const adapter = await (0, IobAdapter_1.getAdapter)();
         for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
             try {
@@ -148,6 +174,15 @@ class IoBrokerOutputNode {
                     }
                 }
                 else if (type === 'state') {
+                    const _ack = this.getNodeParameter('ack', itemIndex, '');
+                    ack = _ack === true || _ack === 'true' || _ack === 1 || _ack === '1';
+                    if (typeof val === 'string' && val.startsWith('{') && val.endsWith('}')) {
+                        const parsedState = JSON.parse(val);
+                        if (typeof parsedState.val !== 'undefined') {
+                            val = parsedState.val;
+                            ack = (_a = parsedState.ack) !== null && _a !== void 0 ? _a : ack;
+                        }
+                    }
                     const obj = await adapter.getIobObject(oid);
                     if (!obj) {
                         throw new n8n_workflow_1.NodeOperationError(this.getNode(), `Object with OID ${oid} does not exist.`);
@@ -155,59 +190,89 @@ class IoBrokerOutputNode {
                     if (obj.type !== 'state') {
                         throw new n8n_workflow_1.NodeOperationError(this.getNode(), `OID ${oid} is not a state object.`);
                     }
-                    if (((_a = obj.common) === null || _a === void 0 ? void 0 : _a.type) === 'number') {
-                        if (typeof val === 'string' && val.startsWith('{') && val.endsWith('}')) {
-                            const parsedState = JSON.parse(val);
-                            if (typeof parsedState.val !== 'number') {
-                                throw new n8n_workflow_1.NodeOperationError(this.getNode(), `Value for OID ${oid} must be a number.`);
-                            }
-                            await adapter.setIobState(oid, parsedState);
+                    if (((_b = obj.common) === null || _b === void 0 ? void 0 : _b.type) === 'number') {
+                        if (val === null) {
+                            await adapter.setIobState(oid, { val, ack });
+                        }
+                        else if (typeof val === 'string') {
+                            await adapter.setIobState(oid, { val: parseFloat(val), ack });
+                        }
+                        else if (typeof val === 'number') {
+                            await adapter.setIobState(oid, { val, ack });
+                        }
+                        else if (typeof val === 'boolean') {
+                            await adapter.setIobState(oid, { val: val ? 1 : 0, ack });
                         }
                         else {
-                            await adapter.setIobState(oid, { val: parseFloat(val), ack: false });
+                            throw new n8n_workflow_1.NodeOperationError(this.getNode(), `Value for OID ${oid} must be a number.`);
                         }
                     }
-                    else if (((_b = obj.common) === null || _b === void 0 ? void 0 : _b.type) === 'boolean') {
-                        if (typeof val === 'string' && val.startsWith('{') && val.endsWith('}')) {
-                            const parsedState = JSON.parse(val);
-                            if (typeof parsedState.val !== 'boolean') {
-                                throw new n8n_workflow_1.NodeOperationError(this.getNode(), `Value for OID ${oid} must be a boolean.`);
-                            }
-                            await adapter.setIobState(oid, parsedState);
+                    else if (((_c = obj.common) === null || _c === void 0 ? void 0 : _c.type) === 'boolean') {
+                        if (val === null) {
+                            await adapter.setIobState(oid, { val, ack });
+                        }
+                        else if (typeof val === 'string') {
+                            await adapter.setIobState(oid, {
+                                val: val.toLowerCase() === 'true' || val === '1',
+                                ack,
+                            });
+                        }
+                        else if (typeof val === 'boolean') {
+                            await adapter.setIobState(oid, { val, ack });
+                        }
+                        else if (typeof val === 'number') {
+                            await adapter.setIobState(oid, { val: !!val, ack });
                         }
                         else {
-                            await adapter.setIobState(oid, { val: val.toLowerCase() === 'true', ack: false });
+                            throw new n8n_workflow_1.NodeOperationError(this.getNode(), `Value for OID ${oid} must be a boolean.`);
                         }
                     }
-                    else if (((_c = obj.common) === null || _c === void 0 ? void 0 : _c.type) === 'string') {
-                        if (typeof val === 'string' && val.startsWith('{') && val.endsWith('}')) {
-                            const parsedState = JSON.parse(val);
-                            if (typeof parsedState.val !== 'string') {
-                                throw new n8n_workflow_1.NodeOperationError(this.getNode(), `Value for OID ${oid} must be a string.`);
-                            }
-                            await adapter.setIobState(oid, parsedState);
+                    else if (((_d = obj.common) === null || _d === void 0 ? void 0 : _d.type) === 'string') {
+                        if (val === null) {
+                            await adapter.setIobState(oid, { val, ack });
+                        }
+                        else if (typeof val === 'string') {
+                            await adapter.setIobState(oid, { val, ack });
+                        }
+                        else if (typeof val === 'number' || typeof val === 'boolean') {
+                            await adapter.setIobState(oid, { val: val.toString(), ack });
                         }
                         else {
-                            await adapter.setIobState(oid, { val: val.toString(), ack: false });
+                            await adapter.setIobState(oid, { val: JSON.stringify(val), ack });
                         }
                     }
                     else {
-                        if (typeof val === 'string' && val.startsWith('{') && val.endsWith('}')) {
-                            const parsedState = JSON.parse(val);
-                            await adapter.setIobState(oid, parsedState);
-                        }
-                        else {
-                            await adapter.setIobState(oid, { val, ack: false });
-                        }
+                        await adapter.setIobState(oid, { val, ack: false });
                     }
                 }
                 else if (type === 'file') {
+                    const fileName = this.getNodeParameter('fileName', itemIndex, '');
+                    const base64 = this.getNodeParameter('base64', itemIndex, '');
+                    if (!oid) {
+                        throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'For file type, OID must be provided.');
+                    }
+                    if (!fileName) {
+                        throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'For file type, path must be provided.');
+                    }
+                    await adapter.setIobFile(oid, fileName, val, base64);
                 }
                 else if (type === 'log') {
+                    const level = this.getNodeParameter('level', itemIndex, '');
                     if (typeof val !== 'string') {
                         throw new n8n_workflow_1.NodeOperationError(this.getNode(), `Value for log must be a string.`);
                     }
-                    adapter.writeIobLog(val, 'info');
+                    if (level === 'error') {
+                        adapter.writeIobLog(val, 'error');
+                    }
+                    else if (level === 'warn') {
+                        adapter.writeIobLog(val, 'warn');
+                    }
+                    else if (level === 'debug') {
+                        adapter.writeIobLog(val, 'debug');
+                    }
+                    else {
+                        adapter.writeIobLog(val, 'info');
+                    }
                 }
             }
             catch (error) {

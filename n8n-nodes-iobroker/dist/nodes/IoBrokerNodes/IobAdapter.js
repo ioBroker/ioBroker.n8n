@@ -4,6 +4,7 @@ exports.N8NNodeAdapter = void 0;
 exports.getAdapter = getAdapter;
 const adapter_core_1 = require("@iobroker/adapter-core");
 const Utils_1 = require("./Utils");
+const LogUtils_1 = require("./LogUtils");
 const pattern2RegEx = adapter_core_1.commonTools.pattern2RegEx;
 function getText(text, language) {
     if (typeof text === 'string') {
@@ -155,7 +156,7 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
         for (let s = 0; s < this.requests.setObject.length; s++) {
             const request = this.requests.setObject[s];
             try {
-                const result = await this.setForeignObjectAsync(request.oid, request.obj);
+                const result = await this.setIobObject(request.oid, request.obj);
                 request.cb(null, result);
             }
             catch (error) {
@@ -167,6 +168,9 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
             const request = this.requests.getFile[s];
             try {
                 const file = await this.readFileAsync(request.oid, request.fileName);
+                if (request.base64 && file.file) {
+                    file.file = Buffer.from(file.file).toString('base64');
+                }
                 request.cb(null, file);
             }
             catch (error) {
@@ -177,6 +181,9 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
         for (let s = 0; s < this.requests.setFile.length; s++) {
             const request = this.requests.setFile[s];
             try {
+                if (request.base64 && typeof request.file === 'string') {
+                    request.file = Buffer.from(request.file, 'base64');
+                }
                 await this.writeFileAsync(request.oid, request.fileName, request.file);
                 request.cb(null);
             }
@@ -188,7 +195,7 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
         for (let s = 0; s < this.requests.getLogs.length; s++) {
             const request = this.requests.getLogs[s];
             try {
-                request.cb(null, []);
+                request.cb(null, await (0, LogUtils_1.readLastLogFile)(this, request.level, request.instance, request.count));
             }
             catch (error) {
                 request.cb(error);
@@ -668,7 +675,26 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
     }
     async setIobObject(oid, obj) {
         if (this._ready) {
-            return this.setForeignObjectAsync(oid, obj);
+            try {
+                let existingObj = await this.getForeignObjectAsync(oid);
+                if (existingObj) {
+                    if (obj.common) {
+                        existingObj.common = existingObj.common || {};
+                        existingObj.common = { ...existingObj.common, ...obj.common };
+                    }
+                    if (obj.native) {
+                        existingObj.native = existingObj.native || {};
+                        existingObj.native = { ...existingObj.native, ...obj.native };
+                    }
+                }
+                else {
+                    existingObj = obj;
+                }
+                return this.setForeignObjectAsync(oid, existingObj);
+            }
+            catch {
+                return this.setForeignObjectAsync(oid, obj);
+            }
         }
         return new Promise((resolve, reject) => {
             this.requests.setObject.push({
@@ -740,6 +766,54 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
             });
         });
     }
+    async setIobFile(oid, fileName, file, base64) {
+        if (this._ready) {
+            if (base64 && typeof file === 'string') {
+                file = Buffer.from(file, 'base64');
+            }
+            return this.writeFileAsync(oid, fileName, file);
+        }
+        return new Promise((resolve, reject) => {
+            this.requests.setFile.push({
+                oid,
+                fileName,
+                file,
+                base64,
+                cb: (error) => {
+                    if (error) {
+                        reject(new Error(`Failed to set object ${oid}`));
+                    }
+                    else {
+                        resolve();
+                    }
+                },
+            });
+        });
+    }
+    async getIobFile(oid, fileName, base64) {
+        if (this._ready) {
+            const data = await this.readFileAsync(oid, fileName);
+            if (base64 && data.file) {
+                data.file = Buffer.from(data.file).toString('base64');
+            }
+            return data || null;
+        }
+        return new Promise((resolve, reject) => {
+            this.requests.getFile.push({
+                oid,
+                fileName,
+                base64,
+                cb: (error, result) => {
+                    if (error) {
+                        reject(new Error(`Failed to write file ${oid}`));
+                    }
+                    else {
+                        resolve(result || null);
+                    }
+                },
+            });
+        });
+    }
     writeIobLog(message, level) {
         if (this._ready) {
             this.log[level || 'info'](message);
@@ -748,9 +822,9 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
             this.requests.writeLog.push({ message, level: level || 'info' });
         }
     }
-    readIobLog(level, instance, count) {
+    async readIobLog(level, instance, count) {
         if (this._ready) {
-            return Promise.resolve([]);
+            return await (0, LogUtils_1.readLastLogFile)(this, level, instance, count);
         }
         return new Promise((resolve, reject) => {
             this.requests.getLogs.push({
@@ -759,7 +833,7 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
                 count,
                 cb: (error, result) => {
                     if (error) {
-                        reject(new Error(`Failed to read logs`));
+                        reject(new Error(`Failed to read logs: ${error}`));
                     }
                     else {
                         resolve(result || []);
