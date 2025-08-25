@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "n8n",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "news": {
+      "0.1.1": {
+        "en": "Implemented read/write files and logs\n",
+        "de": "Ergänzte Schreib-/Lesedateien und Protokolle\n",
+        "ru": "Реализованные файлы чтения/записи и журналы\n",
+        "pt": "Arquivos e logs de leitura/gravação implementados\n",
+        "nl": "Geïmplementeerde lees-/schrijfbestanden en logs\n",
+        "fr": "Mise en œuvre des fichiers et journaux de lecture/écriture\n",
+        "it": "File e log di lettura/scrittura implementati\n",
+        "es": "Registros y registros de lectura/escritura aplicados\n",
+        "pl": "Wdrożone pliki do odczytu / zapisu i dzienniki\n",
+        "uk": "Реалізовано читання/запис файлів та журналів\n",
+        "zh-cn": "已读/写文件和日志\n"
+      },
       "0.1.0": {
         "en": "Implemented read devices",
         "de": "Implementierte Lesegeräte",
