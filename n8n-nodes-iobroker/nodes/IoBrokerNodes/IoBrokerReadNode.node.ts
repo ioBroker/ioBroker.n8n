@@ -243,7 +243,7 @@ export class IoBrokerReadNode implements INodeType {
 				description: 'Deliver objects with icons',
 				displayOptions: {
 					show: {
-						type: ['rooms', 'functions', 'devices'],
+						type: ['rooms', 'functions'],
 					},
 				},
 			},
@@ -368,9 +368,8 @@ export class IoBrokerReadNode implements INodeType {
 					}
 				} else if (type === 'devices') {
 					const language = this.getNodeParameter('language', itemIndex, 'de') as ioBroker.Languages;
-					const withIcons = this.getNodeParameter('withIcons', itemIndex, false) as boolean;
-					const devices = await adapter.readIobDevices(language, withIcons);
-					result.push({ json: { devices }, pairedItem: itemIndex });
+					const rooms = await adapter.readIobDevices(language);
+					result.push({ json: { rooms }, pairedItem: itemIndex });
 				}
 			} catch (error) {
 				// This node should never fail, but we want to showcase how

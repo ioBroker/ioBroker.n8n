@@ -235,7 +235,7 @@ class IoBrokerReadNode {
                     description: 'Deliver objects with icons',
                     displayOptions: {
                         show: {
-                            type: ['rooms', 'functions', 'devices'],
+                            type: ['rooms', 'functions'],
                         },
                     },
                 },
@@ -340,9 +340,8 @@ class IoBrokerReadNode {
                 }
                 else if (type === 'devices') {
                     const language = this.getNodeParameter('language', itemIndex, 'de');
-                    const withIcons = this.getNodeParameter('withIcons', itemIndex, false);
-                    const devices = await adapter.readIobDevices(language, withIcons);
-                    result.push({ json: { devices }, pairedItem: itemIndex });
+                    const rooms = await adapter.readIobDevices(language);
+                    result.push({ json: { rooms }, pairedItem: itemIndex });
                 }
             }
             catch (error) {

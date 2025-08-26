@@ -14,6 +14,7 @@ export interface IotInternalDetectorState extends InternalDetectorState {
 	common: {
 		min?: number;
 		max?: number;
+		unit?: string;
 		type?: ioBroker.CommonType;
 		states?: { [value: string]: string };
 		role?: string;
@@ -334,6 +335,7 @@ export async function controls(
 						max: devicesObject[s.id]?.common?.max,
 						type: devicesObject[s.id]?.common?.type,
 						states: devicesObject[s.id]?.common?.states,
+						unit: devicesObject[s.id]?.common?.unit,
 						role: devicesObject[s.id]?.common?.role,
 						name: devicesObject[s.id]?.common?.name,
 						icon: devicesObject[s.id]?.common?.icon,
@@ -418,6 +420,7 @@ export async function controls(
 						max: devicesObject[s.id]?.common?.max,
 						type: devicesObject[s.id]?.common?.type,
 						states: devicesObject[s.id]?.common?.states,
+						unit: devicesObject[s.id]?.common?.unit,
 						role: devicesObject[s.id]?.common?.role,
 						name: devicesObject[s.id]?.common?.name,
 						icon: devicesObject[s.id]?.common?.icon,
@@ -472,4 +475,363 @@ export async function controls(
 	});
 
 	return detectedControls;
+}
+type RoomName = string;
+type FunctionalityName = string;
+type ControlType =
+	| 'power'
+	| 'dimmer'
+	| 'blindPosition'
+	| 'stop'
+	| 'openedClosed'
+	| 'alarm'
+	| 'color'
+	| 'colorRed'
+	| 'colorGreen'
+	| 'colorBlue'
+	| 'colorWhite'
+	| 'colorTemperature'
+	| 'openClose' // Gate
+	| 'open'
+	| 'close'
+	| 'fanSpeed'
+	| 'boostMode'
+	| 'swingPosition'
+	| 'saturation'
+	| 'swingOnOff'
+	| 'actualTemperature'
+	| 'humidity'
+	| 'illuminance'
+	| 'level'
+	| 'volume'
+	| 'targetTemperature'
+	| 'lock'
+	| 'valve';
+type ControlInDevice = {
+	stateId: string;
+	controlType: ControlType;
+	ioBrokerValueType: ioBroker.CommonType;
+	writable: boolean;
+	readable: boolean;
+	min?: number;
+	max?: number;
+	unit?: string;
+	states?: { [value: string]: string };
+	role?: string;
+};
+export interface Device {
+	deviceName: string | ioBroker.StringOrTranslated | undefined;
+	deviceType: Types;
+	friendlyDeviceNames: string[];
+	room?: RoomName;
+	functionality?: FunctionalityName;
+	controls: { [controlType: string]: ControlInDevice };
+}
+export interface Room {
+	roomName: RoomName;
+	devicesInRoom: Device[];
+}
+export interface Functionality {
+	functionalityName: FunctionalityName;
+	devicesInFunctionality: Device[];
+}
+function getName(
+	name: ioBroker.StringOrTranslated | undefined,
+	lang: ioBroker.Languages,
+	id: string,
+): string {
+	if (typeof name === 'string') {
+		return name;
+	}
+	if (name) {
+		return name[lang] || name.en || Object.values(name)[0] || id.split('.').pop() || 'Unnamed';
+	}
+	return id?.split('.').pop() || 'Unnamed';
+}
+
+function getControlType(
+	device: IotExternalPatternControl,
+	state: IotExternalDetectorState,
+): ControlType {
+	let smartType: ControlType | undefined;
+	// Try to guess from Device Type
+	if (device.type === Types.airCondition) {
+		if (state.name === 'SET') {
+			// set temperature
+			smartType = 'targetTemperature';
+		} else if (state.name === 'ACTUAL') {
+			smartType = 'actualTemperature';
+		} else if (state.name === 'SPEED') {
+			smartType = 'fanSpeed';
+		} else if (state.name === 'POWER') {
+			smartType = 'power';
+		} else if (state.name === 'HUMIDITY') {
+			smartType = 'humidity';
+		} else if (state.name === 'BOOST') {
+			smartType = 'boostMode';
+		} else if (state.name === 'SWING') {
+			if (state.common.type === 'boolean') {
+				smartType = 'swingOnOff';
+			} else if (state.common.type === 'number') {
+				smartType = 'swingPosition';
+			}
+		}
+	} else if (device.type === Types.blind && state.name === 'SET') {
+		if (state.name === 'SET') {
+			// set temperature
+			smartType = 'blindPosition';
+		} else if (state.name === 'STOP') {
+			smartType = 'stop';
+		} else if (state.name === 'OPEN') {
+			smartType = 'open';
+		} else if (state.name === 'CLOSE') {
+			smartType = 'close';
+		}
+	} else if (device.type === Types.cie) {
+		if (state.name === 'CIE') {
+			// set temperature
+			smartType = 'color';
+		} else if (state.name === 'DIMMER' || state.name === 'BRIGHTNESS') {
+			smartType = 'dimmer';
+		} else if (state.name === 'TEMPERATURE') {
+			smartType = 'colorTemperature';
+		} else if (state.name === 'ON') {
+			smartType = 'power';
+		}
+	} else if (device.type === Types.ct) {
+		if (state.name === 'DIMMER' || state.name === 'BRIGHTNESS') {
+			smartType = 'dimmer';
+		} else if (state.name === 'TEMPERATURE') {
+			smartType = 'colorTemperature';
+		} else if (state.name === 'ON') {
+			smartType = 'power';
+		}
+	} else if (device.type === Types.dimmer) {
+		if (state.name === 'SET') {
+			smartType = 'dimmer';
+		} else if (state.name === 'ON') {
+			smartType = 'power';
+		}
+	} else if (device.type === Types.door) {
+		if (state.name === 'ACTUAL') {
+			smartType = 'openedClosed';
+		}
+	} else if (device.type === Types.fireAlarm) {
+		if (state.name === 'ACTUAL') {
+			smartType = 'alarm';
+		}
+	} else if (device.type === Types.floodAlarm) {
+		if (state.name === 'ACTUAL') {
+			smartType = 'alarm';
+		}
+	} else if (device.type === Types.gate) {
+		if (state.name === 'SET') {
+			smartType = 'openClose';
+		} else if (state.name === 'STOP') {
+			smartType = 'stop';
+		}
+	} else if (device.type === Types.hue) {
+		if (state.name === 'HUE') {
+			smartType = 'color';
+		} else if (state.name === 'DIMMER' || state.name === 'BRIGHTNESS') {
+			smartType = 'dimmer';
+		} else if (state.name === 'TEMPERATURE') {
+			smartType = 'colorTemperature';
+		} else if (state.name === 'SATURATION') {
+			smartType = 'saturation';
+		} else if (state.name === 'ON') {
+			smartType = 'power';
+		}
+	} else if (device.type === Types.humidity) {
+		if (state.name === 'ACTUAL') {
+			smartType = 'humidity';
+		}
+	} else if (device.type === Types.illuminance) {
+		if (state.name === 'ACTUAL') {
+			smartType = 'illuminance';
+		}
+	} else if (device.type === Types.slider) {
+		if (state.name === 'SET') {
+			smartType = 'level';
+		}
+	} else if (device.type === Types.light) {
+		if (state.name === 'SET') {
+			smartType = 'power';
+		}
+	} else if (device.type === Types.lock) {
+		if (state.name === 'SET') {
+			smartType = 'lock';
+		} else if (state.name === 'OPEN') {
+			smartType = 'open';
+		}
+	} else if (device.type === Types.motion) {
+		if (state.name === 'ACTUAL') {
+			smartType = 'alarm';
+		}
+	} else if (device.type === Types.rgb) {
+		if (state.name === 'RED') {
+			smartType = 'colorRed';
+		} else if (state.name === 'BLUE') {
+			smartType = 'colorBlue';
+		} else if (state.name === 'GREEN') {
+			smartType = 'colorGreen';
+		} else if (state.name === 'WHITE') {
+			smartType = 'colorWhite';
+		} else if (state.name === 'DIMMER' || state.name === 'BRIGHTNESS') {
+			smartType = 'dimmer';
+		} else if (state.name === 'TEMPERATURE') {
+			smartType = 'colorTemperature';
+		} else if (state.name === 'ON') {
+			smartType = 'power';
+		}
+	} else if (device.type === Types.rgbSingle) {
+		if (state.name === 'RGB') {
+			smartType = 'color';
+		} else if (state.name === 'DIMMER' || state.name === 'BRIGHTNESS') {
+			smartType = 'dimmer';
+		} else if (state.name === 'TEMPERATURE') {
+			smartType = 'colorTemperature';
+		} else if (state.name === 'ON') {
+			smartType = 'power';
+		}
+	} else if (device.type === Types.rgbwSingle) {
+		if (state.name === 'RGBW') {
+			smartType = 'color';
+		} else if (state.name === 'DIMMER' || state.name === 'BRIGHTNESS') {
+			smartType = 'dimmer';
+		} else if (state.name === 'TEMPERATURE') {
+			smartType = 'colorTemperature';
+		} else if (state.name === 'ON') {
+			smartType = 'power';
+		}
+	} else if (device.type === Types.socket) {
+		if (state.name === 'SET') {
+			smartType = 'power';
+		}
+	} else if (device.type === Types.temperature) {
+		if (state.name === 'ACTUAL') {
+			smartType = 'actualTemperature';
+		}
+	} else if (device.type === Types.thermostat) {
+		if (state.name === 'ACTUAL') {
+			smartType = 'actualTemperature';
+		} else if (state.name === 'SET') {
+			smartType = 'targetTemperature';
+		} else if (state.name === 'HUMIDITY') {
+			smartType = 'humidity';
+		} else if (state.name === 'BOOST') {
+			smartType = 'boostMode';
+		} else if (state.name === 'POWER') {
+			smartType = 'power';
+		}
+	} else if (device.type === Types.vacuumCleaner) {
+		if (state.name === 'POWER') {
+			smartType = 'power';
+		}
+	} else if (device.type === Types.volume) {
+		if (state.name === 'SET') {
+			smartType = 'volume';
+		}
+	} else if (device.type === Types.volumeGroup) {
+		if (state.name === 'SET') {
+			smartType = 'volume';
+		}
+	} else if (device.type === Types.window) {
+		if (state.name === 'ACTUAL') {
+			smartType = 'openedClosed';
+		}
+	} else if (device.type === Types.windowTilt) {
+		if (state.name === 'ACTUAL') {
+			smartType = 'openedClosed';
+		}
+	}
+
+	return smartType || (state.name as ControlType);
+}
+
+export async function getAiFriendlyStructure(
+	adapter: ioBroker.Adapter,
+	lang: ioBroker.Languages,
+): Promise<Room[]> {
+	const devices = await controls(adapter, lang);
+	// Reformat the data
+	const rooms: Room[] = [];
+
+	devices.forEach((device) => {
+		let roomName: string;
+		let roomObj: Room;
+
+		if (!device.room) {
+			// Create "No room" object
+			const rObj = rooms.find((r) => r.roomName === 'No room');
+			if (rObj) {
+				roomObj = rObj;
+			} else {
+				roomObj = {
+					roomName: 'No room',
+					devicesInRoom: [],
+				};
+				rooms.push(roomObj);
+			}
+			roomName = 'No room';
+		} else {
+			roomName = getName(device.room.common.name, lang, device.room.id);
+			const rObj = rooms.find((r) => r.roomName === roomName);
+			if (rObj) {
+				roomObj = rObj;
+			} else {
+				roomObj = {
+					roomName,
+					devicesInRoom: [],
+				};
+				rooms.push(roomObj);
+			}
+		}
+		const functionName = device.functionality
+			? getName(device.functionality.common.name, lang, device.functionality.id)
+			: undefined;
+
+		const dev: Device = {
+			deviceName: getName(device.object?.common?.name, lang, device.object?.id || ''),
+			deviceType: device.type,
+			friendlyDeviceNames: device.groupNames,
+			controls: {},
+		};
+		if (roomName) {
+			dev.room = roomName;
+		}
+		if (functionName) {
+			dev.functionality = functionName;
+		}
+		// Fill controls
+		device.states.forEach((state) => {
+			const control: ControlInDevice = {
+				stateId: state.id,
+				controlType:
+					state.id === device.object?.id ? 'power' : (state.role as ControlType) || 'power',
+				role: state.defaultRole,
+				writable: state.write !== false,
+				readable: state.read !== false,
+				unit: state.common?.unit || state.defaultUnit,
+				min: typeof state.min === 'number' ? state.min : undefined,
+				max: typeof state.max === 'number' ? state.max : undefined,
+				ioBrokerValueType: state.common?.type || 'boolean',
+			};
+			let smartType: ControlType | undefined = (state.smartName as SmartNameObject)?.smartType as
+				| ControlType
+				| undefined;
+			if (!smartType) {
+				// Try to guess from Device Type
+				smartType = getControlType(device, state);
+			}
+
+			if (smartType) {
+				dev.controls[smartType] = control;
+			}
+		});
+
+		roomObj.devicesInRoom.push(dev);
+	});
+
+	return rooms;
 }

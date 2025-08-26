@@ -1,5 +1,5 @@
 import { Adapter, type AdapterOptions, commonTools } from '@iobroker/adapter-core';
-import { controls, type IotExternalPatternControl } from './Utils';
+import { getAiFriendlyStructure, type Room } from './DevicesUtils';
 import { readLastLogFile } from './LogUtils';
 const pattern2RegEx = commonTools.pattern2RegEx;
 
@@ -91,10 +91,9 @@ export class N8NNodeAdapter extends Adapter {
 		file: {},
 	};
 	private ownLanguage: ioBroker.Languages = 'en';
-	private cache: { devices: IotExternalPatternControl[] | null; ts: number; withIcons: boolean } = {
+	private cache: { devices: Room[] | null; ts: number } = {
 		devices: null,
 		ts: 0,
-		withIcons: false,
 	};
 
 	private handlers: {
@@ -207,7 +206,7 @@ export class N8NNodeAdapter extends Adapter {
 		readDevices: {
 			language?: ioBroker.Languages;
 			withIcons?: boolean;
-			cb: (error: Error | null | undefined, devices?: IotExternalPatternControl[] | null) => void;
+			cb: (error: Error | null | undefined, devices?: Room[] | null) => void;
 		}[];
 	} = {
 		getState: [],
@@ -403,7 +402,7 @@ export class N8NNodeAdapter extends Adapter {
 		for (let s = 0; s < this.requests.readDevices.length; s++) {
 			const request = this.requests.readDevices[s];
 			try {
-				const devices = await this._readDevices(request.language, request.withIcons);
+				const devices = await this._readDevices(request.language);
 				request.cb(null, devices);
 			} catch (error) {
 				request.cb(error);
@@ -1216,23 +1215,16 @@ export class N8NNodeAdapter extends Adapter {
 		return result;
 	}
 
-	public readIobDevices(
-		language?: ioBroker.Languages,
-		withIcons?: boolean,
-	): Promise<IotExternalPatternControl[]> {
+	public readIobDevices(language?: ioBroker.Languages): Promise<Room[]> {
 		if (this._ready) {
 			this.log.info(`Reading devices`);
-			return this._readDevices(language, withIcons);
+			return this._readDevices(language);
 		}
 
-		return new Promise<IotExternalPatternControl[]>((resolve, reject): void => {
+		return new Promise<Room[]>((resolve, reject): void => {
 			this.requests.readDevices.push({
 				language,
-				withIcons,
-				cb: (
-					error: Error | null | undefined,
-					devices?: IotExternalPatternControl[] | null,
-				): void => {
+				cb: (error: Error | null | undefined, devices?: Room[] | null): void => {
 					if (error) {
 						reject(new Error('Failed to read devices'));
 					} else {
@@ -1243,44 +1235,17 @@ export class N8NNodeAdapter extends Adapter {
 		});
 	}
 
-	private async _readDevices(
-		language?: ioBroker.Languages,
-		withIcons?: boolean,
-	): Promise<IotExternalPatternControl[]> {
-		if (
-			this.cache?.ts + 30000 > Date.now() &&
-			this.cache.devices &&
-			this.cache.withIcons === !!withIcons
-		) {
+	private async _readDevices(language?: ioBroker.Languages): Promise<Room[]> {
+		if (this.cache?.ts + 30000 > Date.now() && this.cache.devices) {
 			return this.cache.devices;
 		}
 		this.cache = {
 			ts: Date.now(),
-			devices: await controls(this as unknown as ioBroker.Adapter, language || this.ownLanguage),
-			withIcons: !!withIcons,
+			devices: await getAiFriendlyStructure(
+				this as unknown as ioBroker.Adapter,
+				language || this.ownLanguage,
+			),
 		};
-
-		if (!withIcons && this.cache.devices) {
-			// Remove all icons
-			for (const device of this.cache.devices) {
-				if (device.object?.common.icon) {
-					delete device.object.common.icon;
-				}
-				if (device.functionality?.common.icon) {
-					delete device.functionality.common.icon;
-				}
-				if (device.room?.common.icon) {
-					delete device.room.common.icon;
-				}
-				if (device.states) {
-					for (const state of device.states) {
-						if (state.common.icon) {
-							delete state.common.icon;
-						}
-					}
-				}
-			}
-		}
 
 		return this.cache.devices || [];
 	}

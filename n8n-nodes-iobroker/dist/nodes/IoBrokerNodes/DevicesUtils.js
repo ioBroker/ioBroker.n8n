@@ -35,6 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isValidSmartName = isValidSmartName;
 exports.controls = controls;
+exports.getAiFriendlyStructure = getAiFriendlyStructure;
 const type_detector_1 = __importStar(require("@iobroker/type-detector"));
 function isValidSmartName(smartName, lang) {
     let name = smartName;
@@ -231,17 +232,18 @@ async function controls(adapter, lang) {
                 state.id = id;
                 control.states = control.states.filter((s) => s.id);
                 control.states.forEach((s) => {
-                    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
+                    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
                     s.smartName = getSmartNameFromObj(devicesObject[s.id], adapter.namespace);
                     s.common = {
                         min: (_b = (_a = devicesObject[s.id]) === null || _a === void 0 ? void 0 : _a.common) === null || _b === void 0 ? void 0 : _b.min,
                         max: (_d = (_c = devicesObject[s.id]) === null || _c === void 0 ? void 0 : _c.common) === null || _d === void 0 ? void 0 : _d.max,
                         type: (_f = (_e = devicesObject[s.id]) === null || _e === void 0 ? void 0 : _e.common) === null || _f === void 0 ? void 0 : _f.type,
                         states: (_h = (_g = devicesObject[s.id]) === null || _g === void 0 ? void 0 : _g.common) === null || _h === void 0 ? void 0 : _h.states,
-                        role: (_k = (_j = devicesObject[s.id]) === null || _j === void 0 ? void 0 : _j.common) === null || _k === void 0 ? void 0 : _k.role,
-                        name: (_m = (_l = devicesObject[s.id]) === null || _l === void 0 ? void 0 : _l.common) === null || _m === void 0 ? void 0 : _m.name,
-                        icon: (_p = (_o = devicesObject[s.id]) === null || _o === void 0 ? void 0 : _o.common) === null || _p === void 0 ? void 0 : _p.icon,
-                        color: (_r = (_q = devicesObject[s.id]) === null || _q === void 0 ? void 0 : _q.common) === null || _r === void 0 ? void 0 : _r.color,
+                        unit: (_k = (_j = devicesObject[s.id]) === null || _j === void 0 ? void 0 : _j.common) === null || _k === void 0 ? void 0 : _k.unit,
+                        role: (_m = (_l = devicesObject[s.id]) === null || _l === void 0 ? void 0 : _l.common) === null || _m === void 0 ? void 0 : _m.role,
+                        name: (_p = (_o = devicesObject[s.id]) === null || _o === void 0 ? void 0 : _o.common) === null || _p === void 0 ? void 0 : _p.name,
+                        icon: (_r = (_q = devicesObject[s.id]) === null || _q === void 0 ? void 0 : _q.common) === null || _r === void 0 ? void 0 : _r.icon,
+                        color: (_t = (_s = devicesObject[s.id]) === null || _s === void 0 ? void 0 : _s.common) === null || _t === void 0 ? void 0 : _t.color,
                     };
                 });
                 devicesObject[id].common.smartName = smartName;
@@ -296,17 +298,18 @@ async function controls(adapter, lang) {
             if (iotControl.states.find((state) => state.id)) {
                 iotControl.states = iotControl.states.filter((s) => s.id);
                 iotControl.states.forEach((s) => {
-                    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
+                    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
                     s.smartName = getSmartNameFromObj(devicesObject[s.id], adapter.namespace);
                     s.common = {
                         min: (_b = (_a = devicesObject[s.id]) === null || _a === void 0 ? void 0 : _a.common) === null || _b === void 0 ? void 0 : _b.min,
                         max: (_d = (_c = devicesObject[s.id]) === null || _c === void 0 ? void 0 : _c.common) === null || _d === void 0 ? void 0 : _d.max,
                         type: (_f = (_e = devicesObject[s.id]) === null || _e === void 0 ? void 0 : _e.common) === null || _f === void 0 ? void 0 : _f.type,
                         states: (_h = (_g = devicesObject[s.id]) === null || _g === void 0 ? void 0 : _g.common) === null || _h === void 0 ? void 0 : _h.states,
-                        role: (_k = (_j = devicesObject[s.id]) === null || _j === void 0 ? void 0 : _j.common) === null || _k === void 0 ? void 0 : _k.role,
-                        name: (_m = (_l = devicesObject[s.id]) === null || _l === void 0 ? void 0 : _l.common) === null || _m === void 0 ? void 0 : _m.name,
-                        icon: (_p = (_o = devicesObject[s.id]) === null || _o === void 0 ? void 0 : _o.common) === null || _p === void 0 ? void 0 : _p.icon,
-                        color: (_r = (_q = devicesObject[s.id]) === null || _q === void 0 ? void 0 : _q.common) === null || _r === void 0 ? void 0 : _r.color,
+                        unit: (_k = (_j = devicesObject[s.id]) === null || _j === void 0 ? void 0 : _j.common) === null || _k === void 0 ? void 0 : _k.unit,
+                        role: (_m = (_l = devicesObject[s.id]) === null || _l === void 0 ? void 0 : _l.common) === null || _m === void 0 ? void 0 : _m.role,
+                        name: (_p = (_o = devicesObject[s.id]) === null || _o === void 0 ? void 0 : _o.common) === null || _p === void 0 ? void 0 : _p.name,
+                        icon: (_r = (_q = devicesObject[s.id]) === null || _q === void 0 ? void 0 : _q.common) === null || _r === void 0 ? void 0 : _r.icon,
+                        color: (_t = (_s = devicesObject[s.id]) === null || _s === void 0 ? void 0 : _s.common) === null || _t === void 0 ? void 0 : _t.color,
                     };
                 });
                 const room = rooms.find((room) => { var _a, _b; return (_b = (_a = room === null || room === void 0 ? void 0 : room.common) === null || _a === void 0 ? void 0 : _a.members) === null || _b === void 0 ? void 0 : _b.includes(id); });
@@ -347,4 +350,343 @@ async function controls(adapter, lang) {
     });
     return detectedControls;
 }
-//# sourceMappingURL=Utils.js.map
+function getName(name, lang, id) {
+    if (typeof name === 'string') {
+        return name;
+    }
+    if (name) {
+        return name[lang] || name.en || Object.values(name)[0] || id.split('.').pop() || 'Unnamed';
+    }
+    return (id === null || id === void 0 ? void 0 : id.split('.').pop()) || 'Unnamed';
+}
+function getControlType(device, state) {
+    let smartType;
+    if (device.type === type_detector_1.Types.airCondition) {
+        if (state.name === 'SET') {
+            smartType = 'targetTemperature';
+        }
+        else if (state.name === 'ACTUAL') {
+            smartType = 'actualTemperature';
+        }
+        else if (state.name === 'SPEED') {
+            smartType = 'fanSpeed';
+        }
+        else if (state.name === 'POWER') {
+            smartType = 'power';
+        }
+        else if (state.name === 'HUMIDITY') {
+            smartType = 'humidity';
+        }
+        else if (state.name === 'BOOST') {
+            smartType = 'boostMode';
+        }
+        else if (state.name === 'SWING') {
+            if (state.common.type === 'boolean') {
+                smartType = 'swingOnOff';
+            }
+            else if (state.common.type === 'number') {
+                smartType = 'swingPosition';
+            }
+        }
+    }
+    else if (device.type === type_detector_1.Types.blind && state.name === 'SET') {
+        if (state.name === 'SET') {
+            smartType = 'blindPosition';
+        }
+        else if (state.name === 'STOP') {
+            smartType = 'stop';
+        }
+        else if (state.name === 'OPEN') {
+            smartType = 'open';
+        }
+        else if (state.name === 'CLOSE') {
+            smartType = 'close';
+        }
+    }
+    else if (device.type === type_detector_1.Types.cie) {
+        if (state.name === 'CIE') {
+            smartType = 'color';
+        }
+        else if (state.name === 'DIMMER' || state.name === 'BRIGHTNESS') {
+            smartType = 'dimmer';
+        }
+        else if (state.name === 'TEMPERATURE') {
+            smartType = 'colorTemperature';
+        }
+        else if (state.name === 'ON') {
+            smartType = 'power';
+        }
+    }
+    else if (device.type === type_detector_1.Types.ct) {
+        if (state.name === 'DIMMER' || state.name === 'BRIGHTNESS') {
+            smartType = 'dimmer';
+        }
+        else if (state.name === 'TEMPERATURE') {
+            smartType = 'colorTemperature';
+        }
+        else if (state.name === 'ON') {
+            smartType = 'power';
+        }
+    }
+    else if (device.type === type_detector_1.Types.dimmer) {
+        if (state.name === 'SET') {
+            smartType = 'dimmer';
+        }
+        else if (state.name === 'ON') {
+            smartType = 'power';
+        }
+    }
+    else if (device.type === type_detector_1.Types.door) {
+        if (state.name === 'ACTUAL') {
+            smartType = 'openedClosed';
+        }
+    }
+    else if (device.type === type_detector_1.Types.fireAlarm) {
+        if (state.name === 'ACTUAL') {
+            smartType = 'alarm';
+        }
+    }
+    else if (device.type === type_detector_1.Types.floodAlarm) {
+        if (state.name === 'ACTUAL') {
+            smartType = 'alarm';
+        }
+    }
+    else if (device.type === type_detector_1.Types.gate) {
+        if (state.name === 'SET') {
+            smartType = 'openClose';
+        }
+        else if (state.name === 'STOP') {
+            smartType = 'stop';
+        }
+    }
+    else if (device.type === type_detector_1.Types.hue) {
+        if (state.name === 'HUE') {
+            smartType = 'color';
+        }
+        else if (state.name === 'DIMMER' || state.name === 'BRIGHTNESS') {
+            smartType = 'dimmer';
+        }
+        else if (state.name === 'TEMPERATURE') {
+            smartType = 'colorTemperature';
+        }
+        else if (state.name === 'SATURATION') {
+            smartType = 'saturation';
+        }
+        else if (state.name === 'ON') {
+            smartType = 'power';
+        }
+    }
+    else if (device.type === type_detector_1.Types.humidity) {
+        if (state.name === 'ACTUAL') {
+            smartType = 'humidity';
+        }
+    }
+    else if (device.type === type_detector_1.Types.illuminance) {
+        if (state.name === 'ACTUAL') {
+            smartType = 'illuminance';
+        }
+    }
+    else if (device.type === type_detector_1.Types.slider) {
+        if (state.name === 'SET') {
+            smartType = 'level';
+        }
+    }
+    else if (device.type === type_detector_1.Types.light) {
+        if (state.name === 'SET') {
+            smartType = 'power';
+        }
+    }
+    else if (device.type === type_detector_1.Types.lock) {
+        if (state.name === 'SET') {
+            smartType = 'lock';
+        }
+        else if (state.name === 'OPEN') {
+            smartType = 'open';
+        }
+    }
+    else if (device.type === type_detector_1.Types.motion) {
+        if (state.name === 'ACTUAL') {
+            smartType = 'alarm';
+        }
+    }
+    else if (device.type === type_detector_1.Types.rgb) {
+        if (state.name === 'RED') {
+            smartType = 'colorRed';
+        }
+        else if (state.name === 'BLUE') {
+            smartType = 'colorBlue';
+        }
+        else if (state.name === 'GREEN') {
+            smartType = 'colorGreen';
+        }
+        else if (state.name === 'WHITE') {
+            smartType = 'colorWhite';
+        }
+        else if (state.name === 'DIMMER' || state.name === 'BRIGHTNESS') {
+            smartType = 'dimmer';
+        }
+        else if (state.name === 'TEMPERATURE') {
+            smartType = 'colorTemperature';
+        }
+        else if (state.name === 'ON') {
+            smartType = 'power';
+        }
+    }
+    else if (device.type === type_detector_1.Types.rgbSingle) {
+        if (state.name === 'RGB') {
+            smartType = 'color';
+        }
+        else if (state.name === 'DIMMER' || state.name === 'BRIGHTNESS') {
+            smartType = 'dimmer';
+        }
+        else if (state.name === 'TEMPERATURE') {
+            smartType = 'colorTemperature';
+        }
+        else if (state.name === 'ON') {
+            smartType = 'power';
+        }
+    }
+    else if (device.type === type_detector_1.Types.rgbwSingle) {
+        if (state.name === 'RGBW') {
+            smartType = 'color';
+        }
+        else if (state.name === 'DIMMER' || state.name === 'BRIGHTNESS') {
+            smartType = 'dimmer';
+        }
+        else if (state.name === 'TEMPERATURE') {
+            smartType = 'colorTemperature';
+        }
+        else if (state.name === 'ON') {
+            smartType = 'power';
+        }
+    }
+    else if (device.type === type_detector_1.Types.socket) {
+        if (state.name === 'SET') {
+            smartType = 'power';
+        }
+    }
+    else if (device.type === type_detector_1.Types.temperature) {
+        if (state.name === 'ACTUAL') {
+            smartType = 'actualTemperature';
+        }
+    }
+    else if (device.type === type_detector_1.Types.thermostat) {
+        if (state.name === 'ACTUAL') {
+            smartType = 'actualTemperature';
+        }
+        else if (state.name === 'SET') {
+            smartType = 'targetTemperature';
+        }
+        else if (state.name === 'HUMIDITY') {
+            smartType = 'humidity';
+        }
+        else if (state.name === 'BOOST') {
+            smartType = 'boostMode';
+        }
+        else if (state.name === 'POWER') {
+            smartType = 'power';
+        }
+    }
+    else if (device.type === type_detector_1.Types.vacuumCleaner) {
+        if (state.name === 'POWER') {
+            smartType = 'power';
+        }
+    }
+    else if (device.type === type_detector_1.Types.volume) {
+        if (state.name === 'SET') {
+            smartType = 'volume';
+        }
+    }
+    else if (device.type === type_detector_1.Types.volumeGroup) {
+        if (state.name === 'SET') {
+            smartType = 'volume';
+        }
+    }
+    else if (device.type === type_detector_1.Types.window) {
+        if (state.name === 'ACTUAL') {
+            smartType = 'openedClosed';
+        }
+    }
+    else if (device.type === type_detector_1.Types.windowTilt) {
+        if (state.name === 'ACTUAL') {
+            smartType = 'openedClosed';
+        }
+    }
+    return smartType || state.name;
+}
+async function getAiFriendlyStructure(adapter, lang) {
+    const devices = await controls(adapter, lang);
+    const rooms = [];
+    devices.forEach((device) => {
+        var _a, _b, _c;
+        let roomName;
+        let roomObj;
+        if (!device.room) {
+            const rObj = rooms.find((r) => r.roomName === 'No room');
+            if (rObj) {
+                roomObj = rObj;
+            }
+            else {
+                roomObj = {
+                    roomName: 'No room',
+                    devicesInRoom: [],
+                };
+                rooms.push(roomObj);
+            }
+            roomName = 'No room';
+        }
+        else {
+            roomName = getName(device.room.common.name, lang, device.room.id);
+            const rObj = rooms.find((r) => r.roomName === roomName);
+            if (rObj) {
+                roomObj = rObj;
+            }
+            else {
+                roomObj = {
+                    roomName,
+                    devicesInRoom: [],
+                };
+                rooms.push(roomObj);
+            }
+        }
+        const functionName = device.functionality
+            ? getName(device.functionality.common.name, lang, device.functionality.id)
+            : undefined;
+        const dev = {
+            deviceName: getName((_b = (_a = device.object) === null || _a === void 0 ? void 0 : _a.common) === null || _b === void 0 ? void 0 : _b.name, lang, ((_c = device.object) === null || _c === void 0 ? void 0 : _c.id) || ''),
+            deviceType: device.type,
+            friendlyDeviceNames: device.groupNames,
+            controls: {},
+        };
+        if (roomName) {
+            dev.room = roomName;
+        }
+        if (functionName) {
+            dev.functionality = functionName;
+        }
+        device.states.forEach((state) => {
+            var _a, _b, _c, _d;
+            const control = {
+                stateId: state.id,
+                controlType: state.id === ((_a = device.object) === null || _a === void 0 ? void 0 : _a.id) ? 'power' : state.role || 'power',
+                role: state.defaultRole,
+                writable: state.write !== false,
+                readable: state.read !== false,
+                unit: ((_b = state.common) === null || _b === void 0 ? void 0 : _b.unit) || state.defaultUnit,
+                min: typeof state.min === 'number' ? state.min : undefined,
+                max: typeof state.max === 'number' ? state.max : undefined,
+                ioBrokerValueType: ((_c = state.common) === null || _c === void 0 ? void 0 : _c.type) || 'boolean',
+            };
+            let smartType = (_d = state.smartName) === null || _d === void 0 ? void 0 : _d.smartType;
+            if (!smartType) {
+                smartType = getControlType(device, state);
+            }
+            if (smartType) {
+                dev.controls[smartType] = control;
+            }
+        });
+        roomObj.devicesInRoom.push(dev);
+    });
+    return rooms;
+}
+//# sourceMappingURL=DevicesUtils.js.map

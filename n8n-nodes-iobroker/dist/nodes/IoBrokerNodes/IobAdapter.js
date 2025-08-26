@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.N8NNodeAdapter = void 0;
 exports.getAdapter = getAdapter;
 const adapter_core_1 = require("@iobroker/adapter-core");
-const Utils_1 = require("./Utils");
+const DevicesUtils_1 = require("./DevicesUtils");
 const LogUtils_1 = require("./LogUtils");
 const pattern2RegEx = adapter_core_1.commonTools.pattern2RegEx;
 function getText(text, language) {
@@ -38,7 +38,6 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
         this.cache = {
             devices: null,
             ts: 0,
-            withIcons: false,
         };
         this.handlers = {
             state: {},
@@ -231,7 +230,7 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
         for (let s = 0; s < this.requests.readDevices.length; s++) {
             const request = this.requests.readDevices[s];
             try {
-                const devices = await this._readDevices(request.language, request.withIcons);
+                const devices = await this._readDevices(request.language);
                 request.cb(null, devices);
             }
             catch (error) {
@@ -919,15 +918,14 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
         }
         return result;
     }
-    readIobDevices(language, withIcons) {
+    readIobDevices(language) {
         if (this._ready) {
             this.log.info(`Reading devices`);
-            return this._readDevices(language, withIcons);
+            return this._readDevices(language);
         }
         return new Promise((resolve, reject) => {
             this.requests.readDevices.push({
                 language,
-                withIcons,
                 cb: (error, devices) => {
                     if (error) {
                         reject(new Error('Failed to read devices'));
@@ -939,38 +937,15 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
             });
         });
     }
-    async _readDevices(language, withIcons) {
-        var _a, _b, _c, _d;
-        if (((_a = this.cache) === null || _a === void 0 ? void 0 : _a.ts) + 30000 > Date.now() &&
-            this.cache.devices &&
-            this.cache.withIcons === !!withIcons) {
+    async _readDevices(language) {
+        var _a;
+        if (((_a = this.cache) === null || _a === void 0 ? void 0 : _a.ts) + 30000 > Date.now() && this.cache.devices) {
             return this.cache.devices;
         }
         this.cache = {
             ts: Date.now(),
-            devices: await (0, Utils_1.controls)(this, language || this.ownLanguage),
-            withIcons: !!withIcons,
+            devices: await (0, DevicesUtils_1.getAiFriendlyStructure)(this, language || this.ownLanguage),
         };
-        if (!withIcons && this.cache.devices) {
-            for (const device of this.cache.devices) {
-                if ((_b = device.object) === null || _b === void 0 ? void 0 : _b.common.icon) {
-                    delete device.object.common.icon;
-                }
-                if ((_c = device.functionality) === null || _c === void 0 ? void 0 : _c.common.icon) {
-                    delete device.functionality.common.icon;
-                }
-                if ((_d = device.room) === null || _d === void 0 ? void 0 : _d.common.icon) {
-                    delete device.room.common.icon;
-                }
-                if (device.states) {
-                    for (const state of device.states) {
-                        if (state.common.icon) {
-                            delete state.common.icon;
-                        }
-                    }
-                }
-            }
-        }
         return this.cache.devices || [];
     }
     async _getInstances() {
