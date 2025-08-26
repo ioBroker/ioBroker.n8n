@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "n8n",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "news": {
+      "0.1.2": {
+        "en": "Used better format for device description",
+        "de": "Verwendetes besseres Format für Gerätebeschreibung",
+        "ru": "Лучший формат для описания устройства",
+        "pt": "Usado melhor formato para descrição do dispositivo",
+        "nl": "Beter formaat voor apparaatbeschrijving gebruikt",
+        "fr": "Meilleur format utilisé pour la description de l'appareil",
+        "it": "Usato formato migliore per la descrizione del dispositivo",
+        "es": "Mejor formato usado para la descripción del dispositivo",
+        "pl": "Używany lepszy format dla opisu urządzenia",
+        "uk": "Використовується кращий формат для опису пристрою",
+        "zh-cn": "设备描述使用了更好的格式"
+      },
       "0.1.1": {
         "en": "Implemented read/write files and logs\n",
         "de": "Ergänzte Schreib-/Lesedateien und Protokolle\n",

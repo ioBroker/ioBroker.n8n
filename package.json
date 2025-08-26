@@ -1,7 +1,7 @@
 {
   "name": "iobroker.n8n",
   "description": "This adapter uses n8n as a service of ioBroker. No additional n8n instance required.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": {
     "name": "bluefox",
     "email": "dogafox@gmail.com"
