@@ -19,6 +19,9 @@ With _n8n Adapter_ you can edit and execute [n8n](https://n8n.io/) workflows dir
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+* (@GermanBluefox) Added link from instances to n8n
+
 ### 0.1.2 (2025-08-26)
 * (@GermanBluefox) Used better format for device description
 

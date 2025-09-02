@@ -90,6 +90,11 @@
       "type": "free",
       "license": "MIT"
     },
+    "localLinks": {
+      "_default": {
+        "link": "http://%ip%:5678"
+      }
+    },
     "platform": "Javascript/Node.js",
     "mode": "daemon",
     "readme": "https://github.com/ioBroker/ioBroker.n8n/blob/master/README.md",
