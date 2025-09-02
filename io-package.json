@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "n8n",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "news": {
+      "0.1.3": {
+        "en": "Added link from instances to n8n",
+        "de": "Link von Instanzen zu n8n hinzugefügt",
+        "ru": "Добавлена ссылка из экземпляров в n8n",
+        "pt": "Adicionado link de instâncias para n8n",
+        "nl": "Verwijzing van instanties naar n8n toegevoegd",
+        "fr": "Ajout d'un lien des instances vers n8n",
+        "it": "Aggiunto link da istanze a n8n",
+        "es": "Añadido el enlace de instancias a n8n",
+        "pl": "Dodano link od instancji do n8n",
+        "uk": "Додано посилання з екземплярів до n8n",
+        "zh-cn": "从实例添加到 n8n 的链接"
+      },
       "0.1.2": {
         "en": "Used better format for device description",
         "de": "Verwendetes besseres Format für Gerätebeschreibung",
