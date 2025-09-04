@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "n8n",
-    "version": "0.1.3",
+    "version": "0.2.0",
     "news": {
+      "0.2.0": {
+        "en": "Implemented file selector. The format of trigger/read/write on file was changed.",
+        "de": "Ergänzte Dateiauswahl. Das Format der Trigger/Lese/Lesedatei wurde geändert.",
+        "ru": "Реализованный селектор файлов. Изменился формат trigger/read/write в файле.",
+        "pt": "Selector de ficheiros implementado. O formato de gatilho/leitura/escrita no arquivo foi alterado.",
+        "nl": "Bestandselectie is geïmplementeerd. Het formaat van trigger/read/write op bestand is gewijzigd.",
+        "fr": "Sélecteur de fichiers mis en œuvre. Le format du déclencheur/lecture/écriture sur le fichier a été modifié.",
+        "it": "Selettore file implementato. Il formato di trigger/read/write sul file è stato modificato.",
+        "es": "Selector de archivos implementado. El formato de gatillo/read/write en archivo fue cambiado.",
+        "pl": "Wdrożony selektor plików. Format wyzwalania / odczytu / zapisu w pliku został zmieniony.",
+        "uk": "Реалізований файловий selector. Змінено формат тригера/читати/писати на файл.",
+        "zh-cn": "已执行的文件选择器 。 文件上的触发/读/写格式被更改."
+      },
       "0.1.3": {
         "en": "Added link from instances to n8n",
         "de": "Link von Instanzen zu n8n hinzugefügt",
