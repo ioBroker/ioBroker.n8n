@@ -88,11 +88,12 @@ export class IoBrokerReadNode implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
+				// Place is important, as this input will be detected by "ioBroker object"
 				placeholder: 'Write here the ioBroker object ID',
 				description: 'like javascript.0.myObject',
 				displayOptions: {
 					show: {
-						type: ['state', 'object', 'file'],
+						type: ['state', 'object'],
 					},
 				},
 			},
@@ -102,8 +103,9 @@ export class IoBrokerReadNode implements INodeType {
 				type: 'string',
 				default: '*',
 				required: true,
-				placeholder: 'File name or pattern',
-				description: 'like main/vis-views.json',
+				// Place is important, as this input will be detected by "ioBroker file"
+				placeholder: 'Write here the ioBroker file name',
+				description: 'like vis-2.0/main/vis-views.json',
 				displayOptions: {
 					show: {
 						type: ['file'],
@@ -306,10 +308,34 @@ export class IoBrokerReadNode implements INodeType {
 					const state = await adapter.getIobState(oid);
 					result.push({ json: (state as unknown as IDataObject) || {}, pairedItem: itemIndex });
 				} else if (type === 'file') {
-					const oid = this.getNodeParameter('oid', itemIndex, '') as string;
-					const fileName = this.getNodeParameter('fileName', itemIndex, '') as string;
+					let fileName = this.getNodeParameter('fileName', itemIndex, '') as string;
 					const base64 = this.getNodeParameter('base64', itemIndex, '') as boolean;
-					const file = await adapter.getIobFile(oid, fileName, base64);
+					if (!fileName?.replace(/^\//, '')) {
+						throw new NodeOperationError(this.getNode(), 'For file type, path must be provided.');
+					}
+					if (fileName.startsWith('/')) {
+						fileName = fileName.substring(1);
+					}
+					const [adapterName, ...rest] = fileName.split('/');
+					if (!rest.length) {
+						throw new NodeOperationError(
+							this.getNode(),
+							'For file type, path must contain at least one directory.',
+						);
+					}
+					if (!adapterName) {
+						throw new NodeOperationError(
+							this.getNode(),
+							`For file type, path must start with some adapter name like "vis-2.0", but found: ${adapterName}.`,
+						);
+					}
+					if (!rest.join('/')) {
+						throw new NodeOperationError(
+							this.getNode(),
+							'For file type, path must contain a file name.',
+						);
+					}
+					const file = await adapter.getIobFile(adapterName, rest.join('/'), base64);
 					result.push({
 						json: {
 							fileName,

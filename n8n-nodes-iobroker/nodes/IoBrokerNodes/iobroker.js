@@ -26,9 +26,10 @@ function openSelectDialogSameTab(item, allowAll) {
 	let selectDialog = document.getElementById('iob-select-id');
 
 	window._iobOnSelected = function (newId, newObj, oldId, oldObj) {
-		let selectDialog = document.getElementById('iob-select-id');
-		if (selectDialog) {
-			selectDialog.setAttribute('open', 'false');
+		let _selectDialog = document.getElementById('iob-select-id');
+		if (_selectDialog) {
+			_selectDialog.setAttribute('open', 'false');
+			_selectDialog.remove();
 		}
 
 		if (newId) {
@@ -61,6 +62,43 @@ function openSelectDialogSameTab(item, allowAll) {
 	}
 }
 
+function openFileDialog(item) {
+	let fileDialog = document.getElementById('iob-file');
+
+	window._iobFileDialogOnSelected = function (newId, oldId) {
+		let _fileDialog = document.getElementById('iob-file');
+		if (_fileDialog) {
+			_fileDialog.setAttribute('open', 'false');
+			_fileDialog.remove();
+		}
+
+		if (newId) {
+			item.value = newId;
+			item.dispatchEvent(new Event('input'));
+		}
+	};
+
+	if (!fileDialog) {
+		fileDialog = document.createElement('iobroker-file');
+		fileDialog.setAttribute('theme', 'dark');
+		fileDialog.setAttribute('id', 'iob-file');
+		fileDialog.setAttribute('imageprefix', `${window.ioBrokerAdmin.protocol}//${window.ioBrokerAdmin.host}:${window.ioBrokerAdmin.port}/files/`);
+		fileDialog.setAttribute('port', window.ioBrokerAdmin.port);
+		fileDialog.setAttribute('host', window.ioBrokerAdmin.host);
+		fileDialog.setAttribute('protocol', window.ioBrokerAdmin.protocol);
+		fileDialog.setAttribute('language', 'en');
+		fileDialog.setAttribute('zindex', '2000');
+		fileDialog.setAttribute('onclose', '_iobFileDialogOnSelected');
+		fileDialog.setAttribute('selected', item.value);
+		fileDialog.setAttribute('open', 'true');
+		document.body.appendChild(fileDialog);
+	} else {
+		console.log('reopenFileDialog', item.value);
+		fileDialog.setAttribute('selected', item.value);
+		fileDialog.setAttribute('open', 'true');
+	}
+}
+
 window.ioBrokerAdmin = {
 	host: window.location.hostname,
 	port: 5680,
@@ -90,8 +128,13 @@ function detectIoBroker() {
 
 						newButton.addEventListener('click', (e) => {
 							e.stopPropagation();
-							console.log('iobroker detected');
-							openSelectDialogSameTab(item, false);
+							if (item.placeholder?.includes('ioBroker object')) {
+								console.log('iobroker state detected');
+								openSelectDialogSameTab(item, false);
+							} else if (item.placeholder?.includes('ioBroker file')) {
+								console.log('iobroker file detected');
+								openFileDialog(item, true);
+							}
 						});
 					}
 				}

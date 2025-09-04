@@ -84,7 +84,7 @@ class IoBrokerReadNode {
                     description: 'like javascript.0.myObject',
                     displayOptions: {
                         show: {
-                            type: ['state', 'object', 'file'],
+                            type: ['state', 'object'],
                         },
                     },
                 },
@@ -94,8 +94,8 @@ class IoBrokerReadNode {
                     type: 'string',
                     default: '*',
                     required: true,
-                    placeholder: 'File name or pattern',
-                    description: 'like main/vis-views.json',
+                    placeholder: 'Write here the ioBroker file name',
+                    description: 'like vis-2.0/main/vis-views.json',
                     displayOptions: {
                         show: {
                             type: ['file'],
@@ -282,10 +282,25 @@ class IoBrokerReadNode {
                     result.push({ json: state || {}, pairedItem: itemIndex });
                 }
                 else if (type === 'file') {
-                    const oid = this.getNodeParameter('oid', itemIndex, '');
-                    const fileName = this.getNodeParameter('fileName', itemIndex, '');
+                    let fileName = this.getNodeParameter('fileName', itemIndex, '');
                     const base64 = this.getNodeParameter('base64', itemIndex, '');
-                    const file = await adapter.getIobFile(oid, fileName, base64);
+                    if (!(fileName === null || fileName === void 0 ? void 0 : fileName.replace(/^\//, ''))) {
+                        throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'For file type, path must be provided.');
+                    }
+                    if (fileName.startsWith('/')) {
+                        fileName = fileName.substring(1);
+                    }
+                    const [adapterName, ...rest] = fileName.split('/');
+                    if (!rest.length) {
+                        throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'For file type, path must contain at least one directory.');
+                    }
+                    if (!adapterName) {
+                        throw new n8n_workflow_1.NodeOperationError(this.getNode(), `For file type, path must start with some adapter name like "vis-2.0", but found: ${adapterName}.`);
+                    }
+                    if (!rest.join('/')) {
+                        throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'For file type, path must contain a file name.');
+                    }
+                    const file = await adapter.getIobFile(adapterName, rest.join('/'), base64);
                     result.push({
                         json: {
                             fileName,

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.IoBrokerTriggerNode = void 0;
+const n8n_workflow_1 = require("n8n-workflow");
 const IobAdapter_1 = require("./IobAdapter");
 class IoBrokerTriggerNode {
     constructor() {
@@ -64,7 +65,7 @@ class IoBrokerTriggerNode {
                     description: 'like javascript.0.myObject',
                     displayOptions: {
                         show: {
-                            type: ['state', 'object', 'file'],
+                            type: ['state', 'object'],
                         },
                     },
                 },
@@ -74,8 +75,8 @@ class IoBrokerTriggerNode {
                     type: 'string',
                     default: '*',
                     required: true,
-                    placeholder: 'File name or pattern',
-                    description: 'like main/vis-views.json',
+                    placeholder: 'Write here the ioBroker file name',
+                    description: 'like vis-2.0/main/vis-views.json',
                     displayOptions: {
                         show: {
                             type: ['file'],
@@ -83,7 +84,7 @@ class IoBrokerTriggerNode {
                     },
                 },
                 {
-                    displayName: 'File name',
+                    displayName: 'With content',
                     name: 'withContent',
                     type: 'boolean',
                     default: false,
@@ -166,9 +167,26 @@ class IoBrokerTriggerNode {
             return {};
         }
         else if (type === 'file') {
-            const oid = this.getNodeParameter('oid');
-            const fileName = this.getNodeParameter('fileName');
+            let fileName = this.getNodeParameter('fileName');
             const withContent = this.getNodeParameter('withContent');
+            if (!(fileName === null || fileName === void 0 ? void 0 : fileName.replace(/^\//, ''))) {
+                throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'For file type, path must be provided.');
+            }
+            if (fileName.startsWith('/')) {
+                fileName = fileName.substring(1);
+            }
+            const [adapterName, ...rest] = fileName.split('/');
+            if (!rest.length) {
+                throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'For file type, path must contain at least one directory.');
+            }
+            if (!adapterName) {
+                throw new n8n_workflow_1.NodeOperationError(this.getNode(), `For file type, path must start with some adapter name like "vis-2.0", but found: ${adapterName}.`);
+            }
+            if (!rest.join('/')) {
+                throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'For file type, path must contain a file name.');
+            }
+            fileName = rest.join('/');
+            console.log('Listening for ', type, adapterName, fileName);
             const fileHandler = (id, fileName, size, file) => {
                 console.log('Triggering on file', type, id, fileName);
                 this.emit([
@@ -188,7 +206,7 @@ class IoBrokerTriggerNode {
                 ]);
             };
             const nodeId = this.getNode().id;
-            await (0, IobAdapter_1.getAdapter)({ nodeId, oid, fileName, fileHandler, withContent });
+            await (0, IobAdapter_1.getAdapter)({ nodeId, oid: adapterName, fileName, fileHandler, withContent });
             return {};
         }
         else if (type === 'object') {

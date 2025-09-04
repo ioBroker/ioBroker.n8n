@@ -8,6 +8,7 @@ import {
 	type ILoadOptionsFunctions,
 	type INodePropertyOptions,
 	NodeConnectionType,
+	NodeOperationError,
 } from 'n8n-workflow';
 import {
 	getAdapter,
@@ -74,11 +75,12 @@ export class IoBrokerTriggerNode implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
+				// Place is important, as this input will be detected by "ioBroker object"
 				placeholder: 'Write here the ioBroker object ID',
 				description: 'like javascript.0.myObject',
 				displayOptions: {
 					show: {
-						type: ['state', 'object', 'file'],
+						type: ['state', 'object'],
 					},
 				},
 			},
@@ -88,8 +90,9 @@ export class IoBrokerTriggerNode implements INodeType {
 				type: 'string',
 				default: '*',
 				required: true,
-				placeholder: 'File name or pattern',
-				description: 'like main/vis-views.json',
+				// Place is important, as this input will be detected by "ioBroker file"
+				placeholder: 'Write here the ioBroker file name',
+				description: 'like vis-2.0/main/vis-views.json',
 				displayOptions: {
 					show: {
 						type: ['file'],
@@ -97,7 +100,7 @@ export class IoBrokerTriggerNode implements INodeType {
 				},
 			},
 			{
-				displayName: 'File name',
+				displayName: 'With content',
 				name: 'withContent',
 				type: 'boolean',
 				default: false,
@@ -189,9 +192,35 @@ export class IoBrokerTriggerNode implements INodeType {
 			return {};
 		} else if (type === 'file') {
 			// For files, we need the file name
-			const oid = this.getNodeParameter('oid') as string;
-			const fileName = this.getNodeParameter('fileName') as string;
+			let fileName = this.getNodeParameter('fileName') as string;
 			const withContent = this.getNodeParameter('withContent') as boolean;
+			if (!fileName?.replace(/^\//, '')) {
+				throw new NodeOperationError(this.getNode(), 'For file type, path must be provided.');
+			}
+			if (fileName.startsWith('/')) {
+				fileName = fileName.substring(1);
+			}
+			const [adapterName, ...rest] = fileName.split('/');
+			if (!rest.length) {
+				throw new NodeOperationError(
+					this.getNode(),
+					'For file type, path must contain at least one directory.',
+				);
+			}
+			if (!adapterName) {
+				throw new NodeOperationError(
+					this.getNode(),
+					`For file type, path must start with some adapter name like "vis-2.0", but found: ${adapterName}.`,
+				);
+			}
+			if (!rest.join('/')) {
+				throw new NodeOperationError(
+					this.getNode(),
+					'For file type, path must contain a file name.',
+				);
+			}
+			fileName = rest.join('/');
+			console.log('Listening for ', type, adapterName, fileName);
 			const fileHandler: IobFileSubscriptionHandler = (
 				id: string,
 				fileName: string,
@@ -218,7 +247,7 @@ export class IoBrokerTriggerNode implements INodeType {
 			};
 
 			const nodeId = this.getNode().id;
-			await getAdapter({ nodeId, oid, fileName, fileHandler, withContent });
+			await getAdapter({ nodeId, oid: adapterName, fileName, fileHandler, withContent });
 
 			return {};
 		} else if (type === 'object') {

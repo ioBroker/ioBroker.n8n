@@ -65,11 +65,12 @@ export class IoBrokerOutputNode implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
+				// Place is important, as this input will be detected by "ioBroker object"
 				placeholder: 'Write here the ioBroker object ID',
 				description: 'like javascript.0.myObject',
 				displayOptions: {
 					show: {
-						type: ['state', 'object', 'file'],
+						type: ['state', 'object'],
 					},
 				},
 			},
@@ -79,8 +80,9 @@ export class IoBrokerOutputNode implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
-				placeholder: 'File name',
-				description: 'like main/vis-views.json',
+				// Place is important, as this input will be detected by "ioBroker file"
+				placeholder: 'Write here the ioBroker file name',
+				description: 'like vis-2.0/main/vis-views.json',
 				displayOptions: {
 					show: {
 						type: ['file'],
@@ -260,17 +262,37 @@ export class IoBrokerOutputNode implements INodeType {
 						await adapter.setIobState(oid, { val, ack: false });
 					}
 				} else if (type === 'file') {
-					const fileName = this.getNodeParameter('fileName', itemIndex, '') as string;
+					let fileName = this.getNodeParameter('fileName', itemIndex, '') as string;
 					const base64 = this.getNodeParameter('base64', itemIndex, '') as boolean;
-					if (!oid) {
-						throw new NodeOperationError(this.getNode(), 'For file type, OID must be provided.');
-					}
-					if (!fileName) {
+					if (!fileName?.replace(/^\//, '')) {
 						throw new NodeOperationError(this.getNode(), 'For file type, path must be provided.');
 					}
+					if (fileName.startsWith('/')) {
+						fileName = fileName.substring(1);
+					}
+					const [adapterName, ...rest] = fileName.split('/');
+					if (!rest.length) {
+						throw new NodeOperationError(
+							this.getNode(),
+							'For file type, path must contain at least one directory.',
+						);
+					}
+					if (!adapterName) {
+						throw new NodeOperationError(
+							this.getNode(),
+							`For file type, path must start with some adapter name like "vis-2.0", but found: ${adapterName}.`,
+						);
+					}
+					if (!rest.join('/')) {
+						throw new NodeOperationError(
+							this.getNode(),
+							'For file type, path must contain a file name.',
+						);
+					}
+
 					// For file type, we assume val is the file content
 					// Here, we write the file to the specified path
-					await adapter.setIobFile(oid, fileName, val, base64);
+					await adapter.setIobFile(adapterName, rest.join('/'), val, base64);
 					// Note: Error handling for file operations can be improved
 				} else if (type === 'log') {
 					const level: ioBroker.LogLevel = this.getNodeParameter(

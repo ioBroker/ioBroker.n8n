@@ -401,6 +401,7 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
             if (newKey) {
                 if (!this.subscribes.file[newKey]) {
                     this.subscribes.file[newKey] = [];
+                    console.log('Subscribing to files', pattern.oid, pattern.fileName || '*');
                     await this.subscribeForeignFiles(pattern.oid, pattern.fileName || '*');
                 }
                 if (!this.subscribes.file[newKey].includes(nodeId)) {

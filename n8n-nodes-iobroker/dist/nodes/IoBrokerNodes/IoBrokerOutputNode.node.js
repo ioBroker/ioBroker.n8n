@@ -65,7 +65,7 @@ class IoBrokerOutputNode {
                     description: 'like javascript.0.myObject',
                     displayOptions: {
                         show: {
-                            type: ['state', 'object', 'file'],
+                            type: ['state', 'object'],
                         },
                     },
                 },
@@ -75,8 +75,8 @@ class IoBrokerOutputNode {
                     type: 'string',
                     default: '',
                     required: true,
-                    placeholder: 'File name',
-                    description: 'like main/vis-views.json',
+                    placeholder: 'Write here the ioBroker file name',
+                    description: 'like vis-2.0/main/vis-views.json',
                     displayOptions: {
                         show: {
                             type: ['file'],
@@ -246,15 +246,25 @@ class IoBrokerOutputNode {
                     }
                 }
                 else if (type === 'file') {
-                    const fileName = this.getNodeParameter('fileName', itemIndex, '');
+                    let fileName = this.getNodeParameter('fileName', itemIndex, '');
                     const base64 = this.getNodeParameter('base64', itemIndex, '');
-                    if (!oid) {
-                        throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'For file type, OID must be provided.');
-                    }
-                    if (!fileName) {
+                    if (!(fileName === null || fileName === void 0 ? void 0 : fileName.replace(/^\//, ''))) {
                         throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'For file type, path must be provided.');
                     }
-                    await adapter.setIobFile(oid, fileName, val, base64);
+                    if (fileName.startsWith('/')) {
+                        fileName = fileName.substring(1);
+                    }
+                    const [adapterName, ...rest] = fileName.split('/');
+                    if (!rest.length) {
+                        throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'For file type, path must contain at least one directory.');
+                    }
+                    if (!adapterName) {
+                        throw new n8n_workflow_1.NodeOperationError(this.getNode(), `For file type, path must start with some adapter name like "vis-2.0", but found: ${adapterName}.`);
+                    }
+                    if (!rest.join('/')) {
+                        throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'For file type, path must contain a file name.');
+                    }
+                    await adapter.setIobFile(adapterName, rest.join('/'), val, base64);
                 }
                 else if (type === 'log') {
                     const level = this.getNodeParameter('level', itemIndex, '');
