@@ -105,6 +105,11 @@ class N8NAdapter extends adapter_core_1.Adapter {
                     res.send((0, node_fs_1.readFileSync)(`${__dirname}/../public/iobrokerSelectId.umd.js`));
                     return;
                 }
+                if (file === '/iobrokerFile.umd.js') {
+                    res.status(200).setHeader('Content-Type', 'application/javascript');
+                    res.send((0, node_fs_1.readFileSync)(`${__dirname}/../public/iobrokerFile.umd.js`));
+                    return;
+                }
                 if (file === '/socket.iob.js') {
                     res.status(200).setHeader('Content-Type', 'application/javascript');
                     res.send((0, node_fs_1.readFileSync)(`${__dirname}/../public/socket.iob.js`));
@@ -134,6 +139,44 @@ class N8NAdapter extends adapter_core_1.Adapter {
             url = parts.join('/');
             // this.adapter.readFile is sanitized
             this.readFile(id, url, null, (err, buffer, mimeType) => {
+                if (!buffer || err) {
+                    res.contentType('text/html');
+                    res.status(404).send(`File not found`);
+                }
+                else {
+                    if (mimeType) {
+                        res.contentType(mimeType);
+                    }
+                    else {
+                        try {
+                            //const _mimeType = getType(url);
+                            res.contentType('text/javascript');
+                        }
+                        catch {
+                            res.contentType('text/javascript');
+                        }
+                    }
+                    res.send(buffer);
+                }
+            });
+        });
+        this.webServer.app.use('/files/', (req, res) => {
+            let url;
+            try {
+                url = decodeURIComponent(req.url);
+            }
+            catch {
+                // ignore
+                url = req.url;
+            }
+            const parts = url.split('/');
+            // Skip first /
+            parts.shift();
+            // Get ID
+            const adapterName = parts.shift() || '';
+            url = parts.join('/');
+            // this.adapter.readFile is sanitized
+            this.readFile(adapterName, url, null, (err, buffer, mimeType) => {
                 if (!buffer || err) {
                     res.contentType('text/html');
                     res.status(404).send(`File not found`);
@@ -317,14 +360,22 @@ class N8NAdapter extends adapter_core_1.Adapter {
             // Place before first <title> tag the script
             indexHtml = indexHtml.replace('<title>', `<script src="/assets/socket.iob.js" crossorigin></script>
         <script src="/assets/iobroker.js" crossorigin></script>
-        <script src="/assets/iobrokerSelectId.umd.js" crossorigin></script>
+        <script src="/assets/iobrokerFile.umd.js" crossorigin></script>
         <title>`);
+            (0, node_fs_1.writeFileSync)(`${distPath}/index.html`, indexHtml);
+        }
+        // replace iobrokerSelectId.umd.js with iobrokerFile.umd.js
+        if (indexHtml.includes('iobrokerSelectId.umd.js')) {
+            // Place before first <title> tag the script
+            indexHtml = indexHtml.replace('<script src="/assets/iobrokerSelectId.umd.js" crossorigin></script>', `<script src="/assets/iobrokerFile.umd.js" crossorigin></script>`);
+            indexHtml = indexHtml.replace('<script src="/assets/iobrokerFile.umd.js" crossorigin></script>\n' +
+                '        <script src="/assets/iobrokerFile.umd.js" crossorigin></script>', `<script src="/assets/iobrokerFile.umd.js" crossorigin></script>`);
             (0, node_fs_1.writeFileSync)(`${distPath}/index.html`, indexHtml);
         }
         (0, node_fs_1.copyFileSync)(`${__dirname}/../n8n-nodes-iobroker/nodes/IoBrokerNodes/iobroker.js`, `${distPath}/assets/iobroker.js`);
         (0, node_fs_1.copyFileSync)(`${__dirname}/../public/index.html`, `${distPath}/assets/iobroker.html`);
-        const ioBrokerSelectId = require.resolve('@iobroker/webcomponent-selectid-dialog').replace('.es.', '.umd.');
-        (0, node_fs_1.copyFileSync)(ioBrokerSelectId, `${distPath}/assets/iobrokerSelectId.umd.js`);
+        const ioBrokerFileDialog = require.resolve('@iobroker/webcomponent-file-dialog').replace('.es.', '.umd.');
+        (0, node_fs_1.copyFileSync)(ioBrokerFileDialog, `${distPath}/assets/iobrokerFile.umd.js`);
         const ioBrokerWs = require.resolve('@iobroker/ws');
         (0, node_fs_1.copyFileSync)(ioBrokerWs.replace(/\\/g, '/').replace('/cjs/socket.io.js', '/esm/socket.io.min.js'), `${distPath}/assets/socket.iob.js`);
         // Check if node_modules directory exists in the n8n user folder
@@ -350,35 +401,6 @@ class N8NAdapter extends adapter_core_1.Adapter {
         const n8nDir = await this.installN8N();
         this.copyFilesToN8N(n8nDir);
         await this.startWebServer();
-        // Start N8N process
-        /*
-        // Simulate loading the configuration
-        const config = await Config.load({});
-
-        const { Start } = require(`${__dirname}/../node_modules/n8n/dist/commands/start.js`);
-
-        // Create class instance
-        this.n8nProcess = new Start([], config as any);
-        const logger = new Logger(this.log);
-        // @1ts-expect-error override logger
-        this.n8nProcess.logger = logger as any;
-        this.n8nProcess.log = (message: string, ...args: any[]): void => {
-            // Convert args to a string if they are provided
-            if (args.length > 0) {
-                message += ` ${args.map(arg => (typeof arg === 'object' ? JSON.stringify(arg) : arg)).join(' ')}`;
-            }
-            const lines = message.split('\n');
-            // Log each line separately
-            for (const line of lines) {
-                if (line.trim()) {
-                    this.log.debug(`[n8n] ${line.trim()}`);
-                }
-            }
-        };
-
-        await this.n8nProcess.init();
-        await this.n8nProcess.run();
-        */
         const env = {
             N8N_RUNNERS_ENABLED: 'true',
             N8N_USER_FOLDER,

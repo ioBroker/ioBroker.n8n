@@ -19,6 +19,9 @@ With _n8n Adapter_ you can edit and execute [n8n](https://n8n.io/) workflows dir
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+* (@GermanBluefox) Implemented file selector. Format of trigger/read/write on file was changed.
+
 ### 0.1.3 (2025-09-02)
 * (@GermanBluefox) Added link from instances to n8n
 
