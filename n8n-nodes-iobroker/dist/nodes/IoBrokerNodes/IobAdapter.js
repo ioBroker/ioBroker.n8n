@@ -679,11 +679,11 @@ class N8NNodeAdapter extends adapter_core_1.Adapter {
                 let existingObj = await this.getForeignObjectAsync(oid);
                 if (existingObj) {
                     if (obj.common) {
-                        existingObj.common = existingObj.common || {};
+                        existingObj.common || (existingObj.common = {});
                         existingObj.common = { ...existingObj.common, ...obj.common };
                     }
                     if (obj.native) {
-                        existingObj.native = existingObj.native || {};
+                        existingObj.native || (existingObj.native = {});
                         existingObj.native = { ...existingObj.native, ...obj.native };
                     }
                 }

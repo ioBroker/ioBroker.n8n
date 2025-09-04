@@ -937,11 +937,11 @@ export class N8NNodeAdapter extends Adapter {
 				if (existingObj) {
 					// merge it
 					if (obj.common) {
-						existingObj.common = existingObj.common || {};
+						existingObj.common ||= {} as ioBroker.ObjectCommon;
 						existingObj.common = { ...existingObj.common, ...obj.common } as ioBroker.ObjectCommon;
 					}
 					if (obj.native) {
-						existingObj.native = existingObj.native || {};
+						existingObj.native ||= {};
 						existingObj.native = { ...existingObj.native, ...obj.native };
 					}
 				} else {
