@@ -21,7 +21,7 @@
     "node": ">=20.19"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^3.2.3",
+    "@iobroker/adapter-core": "^3.3.2",
     "@iobroker/socket-classes": "^2.2.20",
     "@iobroker/webcomponent-file-dialog": "^0.2.1",
     "@iobroker/webserver": "^1.3.1",
