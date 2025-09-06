@@ -176,7 +176,21 @@ export class N8NAdapter extends Adapter {
             if (!collections) {
                 throw new Error('Cannot create secure server: No certificate collection found');
             }
-            const firstCollection = collections[Object.keys(collections)[0]];
+            const firstCollectionId = Object.keys(collections)[0];
+            const firstCollection = collections[firstCollectionId];
+            this.certManager.subscribeCollections(
+                firstCollectionId,
+                (err: Error | null, collections?: Record<string, CertificateCollection>): void => {
+                    if (!err && collections) {
+                        this.log.info(`Certificate collection ${firstCollectionId} changed - restarting adapter`);
+                        // restart adapter as the certificates changed
+                        this.terminate(EXIT_CODES.ADAPTER_REQUESTED_TERMINATION);
+                    } else {
+                        this.log.error(`Cannot subscribe to certificate collection ${firstCollectionId}: ${err}`);
+                    }
+                },
+            );
+
             return {
                 key: firstCollection.key.toString(),
                 cert: firstCollection.cert.toString(),
