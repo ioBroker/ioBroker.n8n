@@ -20,7 +20,7 @@ With _n8n Adapter_ you can edit and execute [n8n](https://n8n.io/) workflows dir
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
-### **WORK IN PROGRESS**
+### 0.3.0 (2025-09-06)
 * (@GermanBluefox) Made configurable ports and https settings
 
 ### 0.2.0 (2025-09-04)
