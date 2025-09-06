@@ -82,7 +82,10 @@ function openFileDialog(item) {
 		fileDialog = document.createElement('iobroker-file');
 		fileDialog.setAttribute('theme', 'dark');
 		fileDialog.setAttribute('id', 'iob-file');
-		fileDialog.setAttribute('imageprefix', `${window.ioBrokerAdmin.protocol}//${window.ioBrokerAdmin.host}:${window.ioBrokerAdmin.port}/files/`);
+		fileDialog.setAttribute(
+			'imageprefix',
+			`${window.ioBrokerAdmin.protocol}//${window.ioBrokerAdmin.host}:${window.ioBrokerAdmin.port}/files/`,
+		);
 		fileDialog.setAttribute('port', window.ioBrokerAdmin.port);
 		fileDialog.setAttribute('host', window.ioBrokerAdmin.host);
 		fileDialog.setAttribute('protocol', window.ioBrokerAdmin.protocol);
@@ -101,8 +104,8 @@ function openFileDialog(item) {
 
 window.ioBrokerAdmin = {
 	host: window.location.hostname,
-	port: 5680,
-	protocol: 'http:',
+	port: '{{PORT}}',
+	protocol: '{{PROTOCOL}}:',
 };
 
 function detectIoBroker() {
@@ -145,3 +148,10 @@ function detectIoBroker() {
 
 // Just now no better way to detect iobroker
 setInterval(detectIoBroker, 1000);
+if (window.parent !== window) {
+	try {
+		window.parent.postMessage('iobLoaded', '*');
+	} catch (e) {
+		// ignore
+	}
+}
