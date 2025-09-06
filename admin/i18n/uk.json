@@ -1,1 +1,19 @@
-{}
+{
+  "Bind address": "Прив’язана адреса",
+  "Do not check if this internal port is available from internet": "Не перевіряйте, чи цей внутрішній порт доступний з Інтернету",
+  "Host": "Хост",
+  "Internal service port": "Внутрішній сервісний порт",
+  "Main settings": "Основні налаштування",
+  "Password": "Пароль",
+  "Port": "Порт",
+  "SMTP settings": "Налаштування SMTP",
+  "Secure (SSL/TLS)": "Безпечний (SSL/TLS)",
+  "Secure(HTTPS)": "Безпечний (HTTPS)",
+  "Sender email address": "Адреса електронної пошти відправника",
+  "Use STARTTLS": "Використовуйте STARTTLS",
+  "User": "Користувач",
+  "Via this port the GUI access the ioBroker Objects (default 5680)": "Через цей порт графічний інтерфейс отримує доступ до об'єктів ioBroker (за замовчуванням 5680)",
+  "n8n port": "Порт n8n",
+  "n8n will be started on this port (default 5678)": "n8n буде запущено на цьому порту (за замовчуванням 5678)",
+  "smtp_explanation": "Налаштування SMTP потрібні лише якщо ви хочете скинути пароль. Через цей інтерфейс буде надіслано електронний лист із посиланням для скидання пароля."
+}

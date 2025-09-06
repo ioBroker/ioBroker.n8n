@@ -1,1 +1,19 @@
-{}
+{
+  "Bind address": "Bind address",
+  "Do not check if this internal port is available from internet": "Do not check if this internal port is available from internet",
+  "Host": "Host",
+  "Internal service port": "Internal service port",
+  "Main settings": "Main settings",
+  "Password": "Password",
+  "Port": "Port",
+  "SMTP settings": "SMTP settings",
+  "Secure (SSL/TLS)": "Secure (SSL/TLS)",
+  "Secure(HTTPS)": "Secure(HTTPS)",
+  "Sender email address": "Sender email address",
+  "Use STARTTLS": "Use STARTTLS",
+  "User": "User",
+  "Via this port the GUI access the ioBroker Objects (default 5680)": "Via this port the GUI access the ioBroker Objects (default 5680)",
+  "n8n port": "n8n port",
+  "n8n will be started on this port (default 5678)": "n8n will be started on this port (default 5678)",
+  "smtp_explanation": "SMTP settings are required only if you want to reset your password. Via this interface the email with the reset link will be sent. "
+}

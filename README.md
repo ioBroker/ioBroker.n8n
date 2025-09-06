@@ -13,13 +13,16 @@
 With _n8n Adapter_ you can edit and execute [n8n](https://n8n.io/) workflows directly from ioBroker.
 
 ## Todo
-- File list of directory
+- Remove not working nodes
 
 <!--
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
+### **WORK IN PROGRESS**
+* (@GermanBluefox) Made configurable ports and https settings
+
 ### 0.2.0 (2025-09-04)
 * (@GermanBluefox) Implemented file selector. The format of trigger/read/write on file was changed.
 

@@ -1,1 +1,19 @@
-{}
+{
+  "Bind address": "Bindadres",
+  "Do not check if this internal port is available from internet": "Controleer niet of deze interne poort beschikbaar is via internet",
+  "Host": "Host",
+  "Internal service port": "Interne servicepoort",
+  "Main settings": "Hoofdinstellingen",
+  "Password": "Wachtwoord",
+  "Port": "Port",
+  "SMTP settings": "SMTP-instellingen",
+  "Secure (SSL/TLS)": "Beveiligd (SSL/TLS)",
+  "Secure(HTTPS)": "Beveiligd (HTTPS)",
+  "Sender email address": "E-mailadres van de afzender",
+  "Use STARTTLS": "Gebruik STARTTLS",
+  "User": "Gebruiker",
+  "Via this port the GUI access the ioBroker Objects (default 5680)": "Via deze poort heeft de GUI toegang tot de ioBroker-objecten (standaard 5680)",
+  "n8n port": "n8n-poort",
+  "n8n will be started on this port (default 5678)": "n8n wordt op deze poort gestart (standaard 5678)",
+  "smtp_explanation": "SMTP-instellingen zijn alleen nodig als u uw wachtwoord wilt resetten. Via deze interface wordt de e-mail met de resetlink verzonden."
+}

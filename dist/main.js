@@ -32,6 +32,7 @@ class N8NAdapter extends adapter_core_1.Adapter {
     bruteForce = {};
     socket = null;
     killResolve = null;
+    certManager = null;
     constructor(options = {}) {
         super({
             ...options,
@@ -70,7 +71,7 @@ class N8NAdapter extends adapter_core_1.Adapter {
             ttl: this.config.ttl,
             secure: this.config.secure,
             auth: false,
-            port: this.config.port || 5680,
+            port: parseInt(this.config.portAdmin, 10) || 5680,
             noInfoConnected: true,
         };
         this.socket = new socket_classes_1.SocketAdmin(settings, this);
@@ -79,6 +80,82 @@ class N8NAdapter extends adapter_core_1.Adapter {
             oauth2Only: false,
             noBasicAuth: true,
         });
+    }
+    /**
+     * Get the custom certificates as text
+     */
+    async getCustomCertificates() {
+        const config = this.config;
+        const defaultPublic = config.certPublic || 'defaultPublic';
+        const defaultPrivate = config.certPrivate || 'defaultPrivate';
+        const defaultChain = config.certChained || '';
+        const customCertificates = await this.getCertificatesAsync(defaultPublic, defaultPrivate, defaultChain);
+        if (customCertificates && customCertificates[0]) {
+            const certs = customCertificates[0];
+            if (certs.key.endsWith('.pem')) {
+                this.log.error(`Cannot load custom certificates. File "${certs.key}" does not exists or iobroker user has no rights for it.`);
+            }
+            else if (certs.cert.endsWith('.pem')) {
+                this.log.error(`Cannot load custom certificates. File "${certs.cert}" does not exists or iobroker user has no rights for it.`);
+            }
+            else if (certs.ca && typeof certs.ca === 'string' && certs.ca.endsWith('.pem')) {
+                this.log.error(`Cannot load custom certificates. File "${certs.ca}" does not exists or iobroker user has no rights for it.`);
+            }
+            else {
+                return certs;
+            }
+        }
+        return null;
+    }
+    async getCerts() {
+        this.certManager ||= new webserver_1.CertificateManager({ adapter: this });
+        let collections;
+        const collectionId = this.config.leCollection;
+        if (collectionId && typeof collectionId === 'string') {
+            const collection = (await this.certManager.getCollection(collectionId));
+            if (collection) {
+                return {
+                    key: collection.key.toString(),
+                    cert: collection.cert.toString(),
+                    ca: collection.chain?.toString(),
+                };
+            }
+            return null;
+        }
+        if (collectionId !== false) {
+            collections = await this.certManager.getAllCollections();
+            if (!collections || !Object.keys(collections).length) {
+                this.log.warn('Could not find any certificate collections - check ACME installation or consider installing');
+                // Load self-signed or custom certificates for fallback
+                const customCertificates = await this.getCustomCertificates();
+                if (customCertificates) {
+                    this.log.warn('Falling back to self-signed certificates or to custom certificates');
+                    return customCertificates;
+                }
+                // This really should never happen as customCertificatesContext should always be available
+                this.log.error('Could not find self-signed certificate - falling back to insecure http createServer');
+                return null;
+            }
+            if (!collections) {
+                throw new Error('Cannot create secure server: No certificate collection found');
+            }
+            const firstCollection = collections[Object.keys(collections)[0]];
+            return {
+                key: firstCollection.key.toString(),
+                cert: firstCollection.cert.toString(),
+                ca: firstCollection.chain?.toString(),
+            };
+        }
+        // fallback to self-signed or custom certificates
+        collections = null;
+        const customCertificates = await this.getCustomCertificates();
+        if (customCertificates) {
+            this.log.debug('Use self-signed certificates or custom certificates');
+            return customCertificates;
+        }
+        // This really should never happen as customCertificatesContext should always be available
+        this.log.error('Could not find self-signed certificate - falling back to insecure http createServer');
+        return null;
     }
     async startWebServer() {
         this.webServer.app = (0, express_1.default)();
@@ -137,7 +214,7 @@ class N8NAdapter extends adapter_core_1.Adapter {
             const adapterName = parts.shift();
             const id = `${adapterName}.admin`;
             url = parts.join('/');
-            // this.adapter.readFile is sanitized
+            // this.readFile is sanitized
             this.readFile(id, url, null, (err, buffer, mimeType) => {
                 if (!buffer || err) {
                     res.contentType('text/html');
@@ -175,7 +252,7 @@ class N8NAdapter extends adapter_core_1.Adapter {
             // Get ID
             const adapterName = parts.shift() || '';
             url = parts.join('/');
-            // this.adapter.readFile is sanitized
+            // this.readFile is sanitized
             this.readFile(adapterName, url, null, (err, buffer, mimeType) => {
                 if (!buffer || err) {
                     res.contentType('text/html');
@@ -221,12 +298,12 @@ class N8NAdapter extends adapter_core_1.Adapter {
             return;
         }
         this.webServer.server.__server = this.webServer;
-        this.webServer.server.listen(this.config.port || 5680, !this.config.bind || this.config.bind === '0.0.0.0' ? undefined : this.config.bind || undefined, () => {
-            if (!this.config.doNotCheckPublicIP && !this.config.auth) {
+        this.webServer.server.listen(parseInt(this.config.portAdmin, 10) || 5680, !this.config.bind || this.config.bind === '0.0.0.0' ? undefined : this.config.bind || undefined, () => {
+            if (!this.config.doNotCheckPublicIP) {
                 this.checkTimeout = this.setTimeout(async () => {
                     this.checkTimeout = null;
                     try {
-                        await (0, webserver_1.checkPublicIP)(this.config.port || 5680, 'ioBroker.web', '/iobroker_check.html');
+                        await (0, webserver_1.checkPublicIP)(this.config.portAdmin || 5680, 'ioBroker.web', '/iobroker_check.html');
                     }
                     catch (e) {
                         // this supported first from js-controller 5.0.
@@ -244,7 +321,7 @@ class N8NAdapter extends adapter_core_1.Adapter {
                 }, 1000);
             }
         });
-        this.log.info(`http${this.config.secure ? 's' : ''} server listening on port ${this.config.port || 5680}`);
+        this.log.info(`http${this.config.secure ? 's' : ''} server listening on port ${this.config.portAdmin || 5680}`);
         this.initSocket(this.webServer.server);
     }
     getNpmCommand(n8nDir) {
@@ -372,7 +449,10 @@ class N8NAdapter extends adapter_core_1.Adapter {
                 '        <script src="/assets/iobrokerFile.umd.js" crossorigin></script>', `<script src="/assets/iobrokerFile.umd.js" crossorigin></script>`);
             (0, node_fs_1.writeFileSync)(`${distPath}/index.html`, indexHtml);
         }
-        (0, node_fs_1.copyFileSync)(`${__dirname}/../n8n-nodes-iobroker/nodes/IoBrokerNodes/iobroker.js`, `${distPath}/assets/iobroker.js`);
+        let ioBrokerJs = (0, node_fs_1.readFileSync)(`${__dirname}/../n8n-nodes-iobroker/nodes/IoBrokerNodes/iobroker.js`).toString();
+        ioBrokerJs = ioBrokerJs.replace('{{PORT}}', (this.config.portAdmin || '5680').toString());
+        ioBrokerJs = ioBrokerJs.replace('{{PROTOCOL}}', (this.config.secure ? 'https' : 'http').toString());
+        (0, node_fs_1.writeFileSync)(`${distPath}/assets/iobroker.js`, ioBrokerJs);
         (0, node_fs_1.copyFileSync)(`${__dirname}/../public/index.html`, `${distPath}/assets/iobroker.html`);
         const ioBrokerFileDialog = require.resolve('@iobroker/webcomponent-file-dialog').replace('.es.', '.umd.');
         (0, node_fs_1.copyFileSync)(ioBrokerFileDialog, `${distPath}/assets/iobrokerFile.umd.js`);
@@ -394,6 +474,12 @@ class N8NAdapter extends adapter_core_1.Adapter {
         }
     }
     async main() {
+        const instanceObj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
+        if (!instanceObj?.native.port) {
+            instanceObj.native.port = 5678;
+            await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, instanceObj);
+            return;
+        }
         this.log.info('N8N Adapter started');
         (0, node_dns_1.setDefaultResultOrder)('ipv4first');
         (0, node_net_1.setDefaultAutoSelectFamily)?.(false);
@@ -401,15 +487,90 @@ class N8NAdapter extends adapter_core_1.Adapter {
         const n8nDir = await this.installN8N();
         this.copyFilesToN8N(n8nDir);
         await this.startWebServer();
+        let certs = null;
+        if (this.config.secure) {
+            certs = await this.getCerts();
+            // Save certificates in n8n directory for n8n
+            if (certs) {
+                (0, node_fs_1.writeFileSync)((0, node_path_1.join)(n8nDir, 'cert-key.pem'), certs.key);
+                (0, node_fs_1.writeFileSync)((0, node_path_1.join)(n8nDir, 'cert.pem'), certs.cert);
+                if (certs.ca) {
+                    (0, node_fs_1.writeFileSync)((0, node_path_1.join)(n8nDir, 'cert-ca.pem'), certs.ca);
+                }
+            }
+        }
         const env = {
             N8N_RUNNERS_ENABLED: 'true',
             N8N_USER_FOLDER,
             N8N_SECURE_COOKIE: 'false',
             PATH: process.env.PATH,
+            N8N_PORT: this.config.port?.toString() || '5678',
+            N8N_DIAGNOSTICS_ENABLED: 'false',
+            N8N_HIRING_BANNER_ENABLED: 'false',
+            N8N_MFA_ENABLED: 'false',
+            N8N_VERSION_NOTIFICATIONS_ENABLED: 'false',
+            N8N_LICENSE_AUTO_RENEW_ENABLED: 'false',
+            // currently only 'en' is supported by n8n
+            // N8N_DEFAULT_LOCALE: systemConfig?.common?.language || 'en',
+            N8N_HIDE_ACTIVATION_ALERT: 'true',
+            N8N_THEME: this.config.theme === 'system' ? '' : this.config.theme,
+            N8N_HIDE_HIDE_GITHUB_STAR_BUTTON: 'true',
+            // N8N_USER_EMAIL: this.config.email || 'test@iobroker.com',
+            // N8N_USER_PASSWORD: this.config.password || 'defaultIoBrokerPassword',
+            N8N_LISTEN_ADDRESS: this.config.bind || '',
+            N8N_LOG_LEVEL: this.log.level === 'silly' ? 'debug' : this.log.level,
+            N8N_PROTOCOL: this.config.secure ? 'https' : 'http',
+            N8N_SSL_KEY: (0, node_path_1.join)(n8nDir, 'cert-key.pem'),
+            N8N_SSL_CERT: (0, node_path_1.join)(n8nDir, 'cert.pem'),
+            //  Smtp settings
+            N8N_SMTP_HOST: this.config.smtp.host,
+            N8N_SMTP_PORT: (this.config.smtp.port || 465).toString(),
+            N8N_SMTP_SSL: this.config.smtp.secure ? 'true' : 'false',
+            N8N_SMTP_STARTTLS: this.config.smtp.startTls ? 'true' : 'false',
+            N8N_SMTP_SENDER: this.config.smtp.sender,
+            N8N_SMTP_USER: this.config.smtp.auth.user,
+            N8N_SMTP_PASS: this.config.smtp.auth.pass,
+            NODES_EXCLUDE: 'telegram,telegramTrigger',
+            // N8N_DISABLED_MODULES: "insights, external-secrets",
+            // N8N_SMTP_OAUTH_SERVICE_CLIENT: this.config.smtp.
+            // N8N_SMTP_OAUTH_PRIVATE_KEY: this.config.smtp.
+            // N8N_USER_PASSWORD:
+            // N8N_USER_EMAIL
+            // N8N_BASE_URL
+            // N8N_LICENSE_CERT
+            // N8N_LICENSE_ACTIVATION_KEY
+            // N8N_LICENSE_TENANT_ID
+            // N8N_PATH
+            // N8N_HOST
+            // N8N_HIDE_USAGE_PAGE
+            // N8N_PROXY_HOPS
+            // N8N_AI_ASSISTANT_BASE_URL
+            // N8N_SECURE_COOKIE: 'http|https'
+            // N8N_SAMESITE_COOKIE: 'strict, lax, none'
+            // N8N_CACHE_MEMORY_MAX_SIZE // 3 * 1024 * 1024
+            // N8N_CACHE_MEMORY_TTL // 3600 * 1000
+            // N8N_CACHE_REDIS_KEY_PREFIX
+            // N8N_CACHE_REDIS_TTL
+            // N8N_CACHE_BACKEND
+            // N8N_DEPLOYMENT_TYPE // default
+            // N8N_DIAGNOSTICS_POSTHOG_API_KEY
+            // N8N_DIAGNOSTICS_POSTHOG_API_HOST
+            // N8N_DIAGNOSTICS_ENABLED
+            // N8N_DIAGNOSTICS_CONFIG_FRONTEND
+            // N8N_DIAGNOSTICS_CONFIG_BACKEND
+            // N8N_LOG_LEVEL // 'error', 'warn', 'info', 'debug', 'silent'
+            // N8N_EDITOR_BASE_URL // SSL Cert for HTTPS Protocol
+            // N8N_AI_ENABLED
+            // N8N_DISABLED_MODULES: Comma-separated list of all disabled modules
+            // N8N_RESTRICT_FILE_ACCESS_TO
         };
         if (process.platform !== 'win32') {
             env.N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS = 'false';
         }
+        // Print env for debug in form A=1;B=2
+        this.log.debug(`Starting n8n with env: ${Object.keys(env)
+            .map(k => `${k}=${env[k]}`)
+            .join(';')}`);
         // System call used for update of js-controller itself,
         // because during an installation the npm packet will be deleted too, but some files must be loaded even during the install process.
         this.n8nProcess = (0, node_child_process_1.spawn)('node', ['node_modules/n8n/bin/n8n'], { cwd: n8nDir, env });

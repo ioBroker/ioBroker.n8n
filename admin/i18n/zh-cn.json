@@ -1,1 +1,19 @@
-{}
+{
+  "Bind address": "绑定地址",
+  "Do not check if this internal port is available from internet": "不检查此内部端口是否可从互联网访问",
+  "Host": "Host",
+  "Internal service port": "内部服务端口",
+  "Main settings": "主要设置",
+  "Password": "密码",
+  "Port": "港口",
+  "SMTP settings": "SMTP 设置",
+  "Secure (SSL/TLS)": "安全（SSL/TLS）",
+  "Secure(HTTPS)": "安全（HTTPS）",
+  "Sender email address": "发件人电子邮件地址",
+  "Use STARTTLS": "使用 STARTTLS",
+  "User": "用户",
+  "Via this port the GUI access the ioBroker Objects (default 5680)": "通过此端口，GUI 可以访问 ioBroker 对象（默认 5680）",
+  "n8n port": "n8n 端口",
+  "n8n will be started on this port (default 5678)": "n8n 将在此端口启动（默认 5678）",
+  "smtp_explanation": "仅当您要重置密码时才需要设置 SMTP。包含重置链接的电子邮件将通过此界面发送。"
+}

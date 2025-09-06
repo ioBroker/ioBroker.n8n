@@ -1,1 +1,19 @@
-{}
+{
+  "Bind address": "Adres wiążący",
+  "Do not check if this internal port is available from internet": "Nie sprawdzaj, czy ten wewnętrzny port jest dostępny z Internetu",
+  "Host": "Host",
+  "Internal service port": "Wewnętrzny port serwisowy",
+  "Main settings": "Ustawienia główne",
+  "Password": "Hasło",
+  "Port": "Port",
+  "SMTP settings": "Ustawienia SMTP",
+  "Secure (SSL/TLS)": "Bezpieczne (SSL/TLS)",
+  "Secure(HTTPS)": "Bezpieczny (HTTPS)",
+  "Sender email address": "Adres e-mail nadawcy",
+  "Use STARTTLS": "Użyj STARTTLS",
+  "User": "Użytkownik",
+  "Via this port the GUI access the ioBroker Objects (default 5680)": "Za pośrednictwem tego portu interfejs graficzny użytkownika uzyskuje dostęp do obiektów ioBroker (domyślnie 5680)",
+  "n8n port": "Port n8n",
+  "n8n will be started on this port (default 5678)": "n8n zostanie uruchomiony na tym porcie (domyślnie 5678)",
+  "smtp_explanation": "Ustawienia SMTP są wymagane tylko wtedy, gdy chcesz zresetować hasło. Za pośrednictwem tego interfejsu zostanie wysłana wiadomość e-mail z linkiem do resetowania hasła."
+}

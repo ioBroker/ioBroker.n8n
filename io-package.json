@@ -1,171 +1,189 @@
 {
-  "common": {
-    "name": "n8n",
-    "version": "0.2.0",
-    "news": {
-      "0.2.0": {
-        "en": "Implemented file selector. The format of trigger/read/write on file was changed.",
-        "de": "Ergänzte Dateiauswahl. Das Format der Trigger/Lese/Lesedatei wurde geändert.",
-        "ru": "Реализованный селектор файлов. Изменился формат trigger/read/write в файле.",
-        "pt": "Selector de ficheiros implementado. O formato de gatilho/leitura/escrita no arquivo foi alterado.",
-        "nl": "Bestandselectie is geïmplementeerd. Het formaat van trigger/read/write op bestand is gewijzigd.",
-        "fr": "Sélecteur de fichiers mis en œuvre. Le format du déclencheur/lecture/écriture sur le fichier a été modifié.",
-        "it": "Selettore file implementato. Il formato di trigger/read/write sul file è stato modificato.",
-        "es": "Selector de archivos implementado. El formato de gatillo/read/write en archivo fue cambiado.",
-        "pl": "Wdrożony selektor plików. Format wyzwalania / odczytu / zapisu w pliku został zmieniony.",
-        "uk": "Реалізований файловий selector. Змінено формат тригера/читати/писати на файл.",
-        "zh-cn": "已执行的文件选择器 。 文件上的触发/读/写格式被更改."
-      },
-      "0.1.3": {
-        "en": "Added link from instances to n8n",
-        "de": "Link von Instanzen zu n8n hinzugefügt",
-        "ru": "Добавлена ссылка из экземпляров в n8n",
-        "pt": "Adicionado link de instâncias para n8n",
-        "nl": "Verwijzing van instanties naar n8n toegevoegd",
-        "fr": "Ajout d'un lien des instances vers n8n",
-        "it": "Aggiunto link da istanze a n8n",
-        "es": "Añadido el enlace de instancias a n8n",
-        "pl": "Dodano link od instancji do n8n",
-        "uk": "Додано посилання з екземплярів до n8n",
-        "zh-cn": "从实例添加到 n8n 的链接"
-      },
-      "0.1.2": {
-        "en": "Used better format for device description",
-        "de": "Verwendetes besseres Format für Gerätebeschreibung",
-        "ru": "Лучший формат для описания устройства",
-        "pt": "Usado melhor formato para descrição do dispositivo",
-        "nl": "Beter formaat voor apparaatbeschrijving gebruikt",
-        "fr": "Meilleur format utilisé pour la description de l'appareil",
-        "it": "Usato formato migliore per la descrizione del dispositivo",
-        "es": "Mejor formato usado para la descripción del dispositivo",
-        "pl": "Używany lepszy format dla opisu urządzenia",
-        "uk": "Використовується кращий формат для опису пристрою",
-        "zh-cn": "设备描述使用了更好的格式"
-      },
-      "0.1.1": {
-        "en": "Implemented read/write files and logs\n",
-        "de": "Ergänzte Schreib-/Lesedateien und Protokolle\n",
-        "ru": "Реализованные файлы чтения/записи и журналы\n",
-        "pt": "Arquivos e logs de leitura/gravação implementados\n",
-        "nl": "Geïmplementeerde lees-/schrijfbestanden en logs\n",
-        "fr": "Mise en œuvre des fichiers et journaux de lecture/écriture\n",
-        "it": "File e log di lettura/scrittura implementati\n",
-        "es": "Registros y registros de lectura/escritura aplicados\n",
-        "pl": "Wdrożone pliki do odczytu / zapisu i dzienniki\n",
-        "uk": "Реалізовано читання/запис файлів та журналів\n",
-        "zh-cn": "已读/写文件和日志\n"
-      },
-      "0.1.0": {
-        "en": "Implemented read devices",
-        "de": "Implementierte Lesegeräte",
-        "ru": "Внедренные устройства чтения",
-        "pt": "Dispositivos de leitura implementados",
-        "nl": "Uitgevoerde leesapparaten",
-        "fr": "Dispositifs de lecture mis en œuvre",
-        "it": "Dispositivi di lettura implementati",
-        "es": "Dispositivos de lectura aplicados",
-        "pl": "Wdrożone urządzenia do odczytu",
-        "uk": "Реалізовані пристрої для читання",
-        "zh-cn": "已执行的读取设备"
-      },
-      "0.0.13": {
-        "en": "initial commit",
-        "de": "erstbestellung",
-        "ru": "первоначальное обязательство",
-        "pt": "commit inicial",
-        "nl": "initiële commit",
-        "fr": "commit initial",
-        "it": "commit iniziale",
-        "es": "inicial",
-        "pl": "initial commit",
-        "uk": "початкова комісія",
-        "zh-cn": "初步承诺"
-      }
+    "common": {
+        "name": "n8n",
+        "version": "0.2.0",
+        "news": {
+            "0.2.0": {
+                "en": "Implemented file selector. The format of trigger/read/write on file was changed.",
+                "de": "Ergänzte Dateiauswahl. Das Format der Trigger/Lese/Lesedatei wurde geändert.",
+                "ru": "Реализованный селектор файлов. Изменился формат trigger/read/write в файле.",
+                "pt": "Selector de ficheiros implementado. O formato de gatilho/leitura/escrita no arquivo foi alterado.",
+                "nl": "Bestandselectie is geïmplementeerd. Het formaat van trigger/read/write op bestand is gewijzigd.",
+                "fr": "Sélecteur de fichiers mis en œuvre. Le format du déclencheur/lecture/écriture sur le fichier a été modifié.",
+                "it": "Selettore file implementato. Il formato di trigger/read/write sul file è stato modificato.",
+                "es": "Selector de archivos implementado. El formato de gatillo/read/write en archivo fue cambiado.",
+                "pl": "Wdrożony selektor plików. Format wyzwalania / odczytu / zapisu w pliku został zmieniony.",
+                "uk": "Реалізований файловий selector. Змінено формат тригера/читати/писати на файл.",
+                "zh-cn": "已执行的文件选择器 。 文件上的触发/读/写格式被更改."
+            },
+            "0.1.3": {
+                "en": "Added link from instances to n8n",
+                "de": "Link von Instanzen zu n8n hinzugefügt",
+                "ru": "Добавлена ссылка из экземпляров в n8n",
+                "pt": "Adicionado link de instâncias para n8n",
+                "nl": "Verwijzing van instanties naar n8n toegevoegd",
+                "fr": "Ajout d'un lien des instances vers n8n",
+                "it": "Aggiunto link da istanze a n8n",
+                "es": "Añadido el enlace de instancias a n8n",
+                "pl": "Dodano link od instancji do n8n",
+                "uk": "Додано посилання з екземплярів до n8n",
+                "zh-cn": "从实例添加到 n8n 的链接"
+            },
+            "0.1.2": {
+                "en": "Used better format for device description",
+                "de": "Verwendetes besseres Format für Gerätebeschreibung",
+                "ru": "Лучший формат для описания устройства",
+                "pt": "Usado melhor formato para descrição do dispositivo",
+                "nl": "Beter formaat voor apparaatbeschrijving gebruikt",
+                "fr": "Meilleur format utilisé pour la description de l'appareil",
+                "it": "Usato formato migliore per la descrizione del dispositivo",
+                "es": "Mejor formato usado para la descripción del dispositivo",
+                "pl": "Używany lepszy format dla opisu urządzenia",
+                "uk": "Використовується кращий формат для опису пристрою",
+                "zh-cn": "设备描述使用了更好的格式"
+            },
+            "0.1.1": {
+                "en": "Implemented read/write files and logs\n",
+                "de": "Ergänzte Schreib-/Lesedateien und Protokolle\n",
+                "ru": "Реализованные файлы чтения/записи и журналы\n",
+                "pt": "Arquivos e logs de leitura/gravação implementados\n",
+                "nl": "Geïmplementeerde lees-/schrijfbestanden en logs\n",
+                "fr": "Mise en œuvre des fichiers et journaux de lecture/écriture\n",
+                "it": "File e log di lettura/scrittura implementati\n",
+                "es": "Registros y registros de lectura/escritura aplicados\n",
+                "pl": "Wdrożone pliki do odczytu / zapisu i dzienniki\n",
+                "uk": "Реалізовано читання/запис файлів та журналів\n",
+                "zh-cn": "已读/写文件和日志\n"
+            },
+            "0.1.0": {
+                "en": "Implemented read devices",
+                "de": "Implementierte Lesegeräte",
+                "ru": "Внедренные устройства чтения",
+                "pt": "Dispositivos de leitura implementados",
+                "nl": "Uitgevoerde leesapparaten",
+                "fr": "Dispositifs de lecture mis en œuvre",
+                "it": "Dispositivi di lettura implementati",
+                "es": "Dispositivos de lectura aplicados",
+                "pl": "Wdrożone urządzenia do odczytu",
+                "uk": "Реалізовані пристрої для читання",
+                "zh-cn": "已执行的读取设备"
+            },
+            "0.0.13": {
+                "en": "initial commit",
+                "de": "erstbestellung",
+                "ru": "первоначальное обязательство",
+                "pt": "commit inicial",
+                "nl": "initiële commit",
+                "fr": "commit initial",
+                "it": "commit iniziale",
+                "es": "inicial",
+                "pl": "initial commit",
+                "uk": "початкова комісія",
+                "zh-cn": "初步承诺"
+            }
+        },
+        "titleLang": {
+            "en": "n8n",
+            "de": "n8n",
+            "ru": "n8n",
+            "pt": "n8n",
+            "nl": "n8n",
+            "fr": "n8n",
+            "it": "n8n",
+            "es": "n8n",
+            "pl": "n8n",
+            "uk": "n8n",
+            "zh-cn": "n8n"
+        },
+        "desc": {
+            "en": "Edit and execute n8n workflows within ioBroker.",
+            "de": "n8n-Workflows innerhalb von ioBroker bearbeiten und ausführen.",
+            "ru": "Редактируйте и выполняйте рабочие процессы n8n в ioBroker.",
+            "pt": "Editar e executar fluxos de trabalho n8n dentro do ioBroker.",
+            "nl": "Bewerk en voer n8n-workflows uit binnen ioBroker.",
+            "fr": "Modifier et exécuter des flux de travail n8n dans ioBroker.",
+            "it": "Modifica ed esegui i flussi di lavoro n8n all'interno di ioBroker.",
+            "es": "Editar y ejecutar flujos de trabajo n8n dentro de ioBroker.",
+            "pl": "Edytuj i wykonuj przepływy pracy n8n w ioBroker.",
+            "uk": "Редагуйте та виконуйте робочі процеси n8n в ioBroker.",
+            "zh-cn": "在 ioBroker 中编辑和执行 n8n 工作流。"
+        },
+        "authors": ["bluefox <dogafox@gmail.com>"],
+        "licenseInformation": {
+            "type": "free",
+            "license": "MIT"
+        },
+        "localLinks": {
+            "_default": {
+                "link": "%n8n_protocol%://%ip%:%n8n_port%"
+            }
+        },
+        "platform": "Javascript/Node.js",
+        "mode": "daemon",
+        "readme": "https://github.com/ioBroker/ioBroker.n8n/blob/master/README.md",
+        "loglevel": "info",
+        "icon": "n8n.svg",
+        "enabled": true,
+        "messagebox": true,
+        "adminUI": {
+            "config": "json"
+        },
+        "eraseOnUpload": true,
+        "keywords": ["Workflows", "n8n"],
+        "compact": false,
+        "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.n8n/master/admin/n8n.svg",
+        "type": "logic",
+        "logTransporter": true,
+        "stopBeforeUpdate": true,
+        "adminTab": {
+            "link": "%n8n_protocol%://%ip%:%n8n_port%",
+            "name": {
+                "en": "n8n",
+                "de": "n8n",
+                "ru": "n8n",
+                "pt": "n8n",
+                "nl": "n8n",
+                "fr": "n8n",
+                "it": "n8n",
+                "es": "n8n",
+                "pl": "n8n",
+                "uk": "n8n",
+                "zh-cn": "n8n"
+            },
+            "singleton": true,
+            "supportsLoadingMessage": true
+        },
+        "connectionType": "local",
+        "dataSource": "push",
+        "dependencies": [
+            {
+                "js-controller": ">=6.0.0"
+            }
+        ],
+        "tier": 1
     },
-    "titleLang": {
-      "en": "n8n",
-      "de": "n8n",
-      "ru": "n8n",
-      "pt": "n8n",
-      "nl": "n8n",
-      "fr": "n8n",
-      "it": "n8n",
-      "es": "n8n",
-      "pl": "n8n",
-      "uk": "n8n",
-      "zh-cn": "n8n"
+    "native": {
+        "portAdmin": "5680",
+        "port": "5678",
+        "user": "",
+        "password": "",
+        "theme": "dark",
+        "certPublic": "",
+        "certPrivate": "",
+        "certChained": "",
+        "secure": false,
+        "leCollection": false,
+        "smtp":  {
+            "host": "",
+            "port": 587,
+            "secure": false,
+            "startTls": true,
+            "sender": "",
+            "auth": {
+                "user": "",
+                "pass": ""
+            }
+        }
     },
-    "desc": {
-      "en": "Edit and execute n8n workflows within ioBroker.",
-      "de": "n8n-Workflows innerhalb von ioBroker bearbeiten und ausführen.",
-      "ru": "Редактируйте и выполняйте рабочие процессы n8n в ioBroker.",
-      "pt": "Editar e executar fluxos de trabalho n8n dentro do ioBroker.",
-      "nl": "Bewerk en voer n8n-workflows uit binnen ioBroker.",
-      "fr": "Modifier et exécuter des flux de travail n8n dans ioBroker.",
-      "it": "Modifica ed esegui i flussi di lavoro n8n all'interno di ioBroker.",
-      "es": "Editar y ejecutar flujos de trabajo n8n dentro de ioBroker.",
-      "pl": "Edytuj i wykonuj przepływy pracy n8n w ioBroker.",
-      "uk": "Редагуйте та виконуйте робочі процеси n8n в ioBroker.",
-      "zh-cn": "在 ioBroker 中编辑和执行 n8n 工作流。"
-    },
-    "authors": [
-      "bluefox <dogafox@gmail.com>"
-    ],
-    "licenseInformation": {
-      "type": "free",
-      "license": "MIT"
-    },
-    "localLinks": {
-      "_default": {
-        "link": "http://%ip%:5678"
-      }
-    },
-    "platform": "Javascript/Node.js",
-    "mode": "daemon",
-    "readme": "https://github.com/ioBroker/ioBroker.n8n/blob/master/README.md",
-    "loglevel": "info",
-    "icon": "n8n.svg",
-    "enabled": true,
-    "messagebox": true,
-    "adminUI": {
-      "config": "json"
-    },
-    "eraseOnUpload": true,
-    "keywords": [
-      "Workflows",
-      "n8n"
-    ],
-    "compact": false,
-    "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.n8n/master/admin/n8n.svg",
-    "type": "logic",
-    "logTransporter": true,
-    "stopBeforeUpdate": true,
-    "adminTab": {
-      "link": "http://%ip%:5678",
-      "name": {
-        "en": "n8n",
-        "de": "n8n",
-        "ru": "n8n",
-        "pt": "n8n",
-        "nl": "n8n",
-        "fr": "n8n",
-        "it": "n8n",
-        "es": "n8n",
-        "pl": "n8n",
-        "uk": "n8n",
-        "zh-cn": "n8n"
-      },
-      "singleton": false
-    },
-    "connectionType": "local",
-    "dataSource": "push",
-    "dependencies": [
-      {
-        "js-controller": ">=6.0.0"
-      }
-    ],
-    "tier": 1
-  },
-  "native": {},
-  "instanceObjects": []
+    "instanceObjects": []
 }

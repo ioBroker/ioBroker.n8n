@@ -1,1 +1,19 @@
-{}
+{
+  "Bind address": "Привязать адрес",
+  "Do not check if this internal port is available from internet": "Не проверяйте, доступен ли этот внутренний порт из Интернета.",
+  "Host": "Хост",
+  "Internal service port": "Внутренний сервисный порт",
+  "Main settings": "Основные настройки",
+  "Password": "Пароль",
+  "Port": "Порт",
+  "SMTP settings": "Настройки SMTP",
+  "Secure (SSL/TLS)": "Безопасный (SSL/TLS)",
+  "Secure(HTTPS)": "Безопасный (HTTPS)",
+  "Sender email address": "Адрес электронной почты отправителя",
+  "Use STARTTLS": "Использовать STARTTLS",
+  "User": "Пользователь",
+  "Via this port the GUI access the ioBroker Objects (default 5680)": "Через этот порт графический интерфейс получает доступ к объектам ioBroker (по умолчанию 5680).",
+  "n8n port": "Порт n8n",
+  "n8n will be started on this port (default 5678)": "n8n будет запущен на этом порту (по умолчанию 5678)",
+  "smtp_explanation": "Настройки SMTP необходимы только для сброса пароля. Через этот интерфейс будет отправлено письмо со ссылкой для сброса пароля."
+}

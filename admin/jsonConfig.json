@@ -1,24 +1,141 @@
 {
-  "i18n": true,
-  "type": "panel",
-  "items": {
-    "port": {
-      "type": "port",
-      "label": "Internal service port",
-      "help": "Via this port the GUI access the ioBroker Objects (default 5680)",
-      "xs": 12,
-      "sm": 12,
-      "md": 4
-    },
-    "doNotCheckPublicIP": {
-      "newLine": true,
-      "label": "Do not check if this instance is available from internet",
-      "type": "checkbox",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 6,
-      "hidden": "!!data.auth"
+    "i18n": true,
+    "type": "tabs",
+    "items": {
+        "mainTab": {
+            "type": "panel",
+            "label": "Main settings",
+            "items": {
+                "bind": {
+                    "newLine": true,
+                    "type": "ip",
+                    "label": "Bind address",
+                    "listenOnAllPorts": true,
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 8,
+                    "lg": 5
+                },
+                "port": {
+                    "type": "number",
+                    "min": 0,
+                    "max": 65535,
+                    "label": "n8n port",
+                    "help": "n8n will be started on this port (default 5678)",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 4,
+                    "lg": 3
+                },
+                "portAdmin": {
+                    "type": "number",
+                    "label": "Internal service port",
+                    "help": "Via this port the GUI access the ioBroker Objects (default 5680)",
+                    "min": 0,
+                    "max": 65535,
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 4
+                },
+                "secure": {
+                    "newLine": true,
+                    "type": "checkbox",
+                    "label": "Secure(HTTPS)",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 6,
+                    "lg": 5
+                },
+                "_certs": {
+                    "type": "certificates",
+                    "newLine": true,
+                    "hidden": "!data.secure",
+                    "xs": 12,
+                    "sm": 12
+                },
+                "doNotCheckPublicIP": {
+                    "newLine": true,
+                    "label": "Do not check if this internal port is available from internet",
+                    "type": "checkbox",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 6,
+                    "lg": 6,
+                    "hidden": "!!data.auth"
+                }
+            }
+        },
+        "smtp": {
+            "type": "panel",
+            "label": "SMTP settings",
+            "items": {
+                "_smtp": {
+                    "type": "staticText",
+                    "text": "smtp_explanation"
+                },
+                "smtp.host": {
+                    "newLine": true,
+                    "type": "text",
+                    "label": "Host",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 8,
+                    "lg": 5
+                },
+                "smtp.port": {
+                    "type": "number",
+                    "label": "Port",
+                    "min": 0,
+                    "max": 65535,
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 4,
+                    "lg": 3
+                },
+                "smtp.secure": {
+                    "newLine": true,
+                    "type": "checkbox",
+                    "label": "Secure (SSL/TLS)",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 6,
+                    "lg": 5
+                },
+                "smtp.startTls": {
+                    "type": "checkbox",
+                    "label": "Use STARTTLS",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 6,
+                    "lg": 5
+                },
+                "smtp.sender": {
+                    "newLine": true,
+                    "type": "text",
+                    "label": "Sender email address",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 8,
+                    "lg": 5
+                },
+                "smtp.auth.user": {
+                    "newLine": true,
+                    "type": "text",
+                    "label": "User",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 6,
+                    "lg": 5
+                },
+                "smtp.auth.pass": {
+                    "type": "password",
+                    "label": "Password",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 6,
+                    "lg": 5
+                }
+            }
+        }
     }
-  }
 }
