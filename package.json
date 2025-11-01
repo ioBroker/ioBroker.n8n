@@ -47,7 +47,7 @@
     "chai": "^4.5.0",
     "mocha": "^11.7.4",
     "n8n": "1.113.3",
-    "typescript": "~5.8.3"
+    "typescript": "~5.9.3"
   },
   "bugs": {
     "url": "https://github.com/ioBroker/ioBroker.n8n/issues"
