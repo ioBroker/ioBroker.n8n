@@ -19,7 +19,7 @@ const N8N_VERSION = pack.devDependencies.n8n || pack.dependencies.n8n || '1.99.0
 const webserver_1 = require("@iobroker/webserver");
 const socket_classes_1 = require("@iobroker/socket-classes");
 const ws_server_1 = require("@iobroker/ws-server");
-const child_process_1 = require("child_process");
+const child_process_1 = require("node:child_process");
 class N8NAdapter extends adapter_core_1.Adapter {
     n8nProcess = null;
     webServer = {
