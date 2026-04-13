@@ -39,7 +39,7 @@
         "@iobroker/legacy-testing": "^2.0.2",
         "@iobroker/testing": "^5.2.2",
         "@types/express-session": "^1.18.2",
-        "@types/node": "^25.6.0",
+        "@types/node": "^25.5.2",
         "n8n": "2.15.1",
         "typescript": "~5.9.3"
     },
