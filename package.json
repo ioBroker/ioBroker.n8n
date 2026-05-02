@@ -18,7 +18,7 @@
         "url": "https://github.com/ioBroker/ioBroker.n8n"
     },
     "engines": {
-        "node": ">=20.19"
+        "node": ">=22.19"
     },
     "dependencies": {
         "@iobroker/adapter-core": "^3.3.2",

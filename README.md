@@ -21,6 +21,7 @@ With _n8n Adapter_ you can edit and execute [n8n](https://n8n.io/) workflows dir
 -->
 ## Changelog
 ### **WORK IN PROGRESS**
+- (copilot) Adapter requires node.js >= 22 now
 * (@GermanBluefox) Updated packages
 
 ### 0.3.0 (2025-09-06)
