@@ -44,6 +44,8 @@ With _n8n Adapter_ you can edit and execute [n8n](https://n8n.io/) workflows dir
 ### 0.0.13 (2025-08-24)
 * (bluefox) initial commit
 
+[Older changelogs can be found there](CHANGELOG_OLD.md)
+
 ## License
 The MIT License (MIT)
 
