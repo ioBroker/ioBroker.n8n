@@ -24,7 +24,7 @@
     "@iobroker/adapter-core": "^3.3.2",
     "@iobroker/socket-classes": "^2.3.1",
     "@iobroker/webcomponent-file-dialog": "^1.0.0",
-    "@iobroker/webserver": "^1.4.0",
+    "@iobroker/webserver": "^3.0.2",
     "@iobroker/ws": "^3.1.0",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
