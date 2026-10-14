@@ -15,5 +15,9 @@
   "Via this port the GUI access the ioBroker Objects (default 5680)": "Via deze poort heeft de GUI toegang tot de ioBroker-objecten (standaard 5680)",
   "n8n port": "n8n-poort",
   "n8n will be started on this port (default 5678)": "n8n wordt op deze poort gestart (standaard 5678)",
-  "smtp_explanation": "SMTP-instellingen zijn alleen nodig als u uw wachtwoord wilt resetten. Via deze interface wordt de e-mail met de resetlink verzonden."
+  "smtp_explanation": "SMTP-instellingen zijn alleen nodig als u uw wachtwoord wilt resetten. Via deze interface wordt de e-mail met de resetlink verzonden.",
+  "Open n8n via admin": "n8n openen via admin",
+  "adminProxy_help": "Het n8n-tabblad loopt via de poort en de login van admin (admin 8.2.1 of nieuwer). n8n is dan niet meer rechtstreeks via de eigen poort bereikbaar, webhooks wel.",
+  "Path of admin": "Pad van admin",
+  "adminPath_help": "Alleen als admin achter een reverse proxy met een eigen pad draait, bijv. /admin/. Leeg is /"
 }

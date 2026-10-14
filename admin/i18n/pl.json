@@ -15,5 +15,9 @@
   "Via this port the GUI access the ioBroker Objects (default 5680)": "Za pośrednictwem tego portu interfejs graficzny użytkownika uzyskuje dostęp do obiektów ioBroker (domyślnie 5680)",
   "n8n port": "Port n8n",
   "n8n will be started on this port (default 5678)": "n8n zostanie uruchomiony na tym porcie (domyślnie 5678)",
-  "smtp_explanation": "Ustawienia SMTP są wymagane tylko wtedy, gdy chcesz zresetować hasło. Za pośrednictwem tego interfejsu zostanie wysłana wiadomość e-mail z linkiem do resetowania hasła."
+  "smtp_explanation": "Ustawienia SMTP są wymagane tylko wtedy, gdy chcesz zresetować hasło. Za pośrednictwem tego interfejsu zostanie wysłana wiadomość e-mail z linkiem do resetowania hasła.",
+  "Open n8n via admin": "Otwieraj n8n przez admin",
+  "adminProxy_help": "Karta n8n działa przez port i logowanie admina (admin 8.2.1 lub nowszy). n8n nie jest wtedy dostępny bezpośrednio na własnym porcie, webhooki nadal tak.",
+  "Path of admin": "Ścieżka admina",
+  "adminPath_help": "Tylko jeśli admin działa za odwrotnym proxy z własną ścieżką, np. /admin/. Puste oznacza /"
 }

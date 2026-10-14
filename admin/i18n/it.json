@@ -15,5 +15,9 @@
   "Via this port the GUI access the ioBroker Objects (default 5680)": "Tramite questa porta la GUI accede agli oggetti ioBroker (predefinito 5680)",
   "n8n port": "Porta n8n",
   "n8n will be started on this port (default 5678)": "n8n verrà avviato su questa porta (predefinita 5678)",
-  "smtp_explanation": "Le impostazioni SMTP sono necessarie solo se si desidera reimpostare la password. Tramite questa interfaccia verrà inviata un'e-mail con il link per reimpostare la password."
+  "smtp_explanation": "Le impostazioni SMTP sono necessarie solo se si desidera reimpostare la password. Tramite questa interfaccia verrà inviata un'e-mail con il link per reimpostare la password.",
+  "Open n8n via admin": "Apri n8n tramite admin",
+  "adminProxy_help": "La scheda n8n passa attraverso la porta e il login di admin (admin 8.2.1 o successivo). n8n non è più raggiungibile direttamente sulla propria porta, i webhook sì.",
+  "Path of admin": "Percorso di admin",
+  "adminPath_help": "Solo se admin funziona dietro un reverse proxy con un proprio percorso, ad es. /admin/. Vuoto è /"
 }

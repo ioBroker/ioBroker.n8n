@@ -12,6 +12,10 @@ export type N8NAdapterConfig = {
     certPrivate: string;
     certChained: string;
     leCollection: boolean | string;
+    /** The tab in admin runs through the proxy of admin (`/proxy/n8n.0/`). Missing in old instances: on */
+    adminProxy?: boolean;
+    /** Public path of admin, if it runs behind a reverse proxy with its own path. Empty is `/` */
+    adminPath?: string;
     smtp: {
         host: string;
         port: number | string;

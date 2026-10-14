@@ -19,7 +19,16 @@ const N8N_VERSION = pack.devDependencies.n8n || pack.dependencies.n8n || '1.99.0
 const webserver_1 = require("@iobroker/webserver");
 const socket_classes_1 = require("@iobroker/socket-classes");
 const ws_server_1 = require("@iobroker/ws-server");
-const child_process_1 = require("node:child_process");
+const node_child_process_2 = require("node:child_process");
+/** Feature a js-controller announces once it keeps the per-host registry of used resources. Since js-controller 8. */
+const USED_RESOURCES_FEATURE = 'CONTROLLER_USED_RESOURCES';
+/** Addresses that stand for every interface: the port is occupied in both address families, so no family is reported */
+const WILDCARD_ADDRESSES = ['0.0.0.0', '::', '*', ''];
+/**
+ * Port of the n8n task broker (internal task runners) for instance 0 (n8n default), listens on 127.0.0.1 only.
+ * Further instances use steps of 10 (n8n.1 → 5689), as "+ instance" would hit the default service port 5680.
+ */
+const N8N_RUNNERS_BROKER_PORT = 5679;
 class N8NAdapter extends adapter_core_1.Adapter {
     n8nProcess = null;
     webServer = {
@@ -33,11 +42,17 @@ class N8NAdapter extends adapter_core_1.Adapter {
     socket = null;
     killResolve = null;
     certManager = null;
+    stopping = false;
+    /** Ports of the n8n process registered in the used resources of the host, so they can be freed when n8n exits */
+    reportedN8nPorts = [];
+    /** Register and free go to the host one after another, so a free cannot overtake the register it undoes */
+    usedResourcesQueue = Promise.resolve();
     constructor(options = {}) {
         super({
             ...options,
             name: 'n8n',
             unload: async (cb) => {
+                this.stopping = true;
                 await this.destroyN8n();
                 cb?.();
             },
@@ -309,7 +324,10 @@ class N8NAdapter extends adapter_core_1.Adapter {
             return;
         }
         this.webServer.server.__server = this.webServer;
-        this.webServer.server.listen(parseInt(this.config.portAdmin, 10) || 5680, !this.config.bind || this.config.bind === '0.0.0.0' ? undefined : this.config.bind || undefined, () => {
+        const portAdmin = this.usedPort(parseInt(this.config.portAdmin, 10) || 5680, this.config.bind);
+        await this.warnAboutUsedPorts([portAdmin]);
+        this.webServer.server.listen(portAdmin.port, !this.config.bind || this.config.bind === '0.0.0.0' ? undefined : this.config.bind || undefined, () => {
+            this.registerUsedPorts([portAdmin]);
             if (!this.config.doNotCheckPublicIP) {
                 this.checkTimeout = this.setTimeout(async () => {
                     this.checkTimeout = null;
@@ -404,7 +422,7 @@ class N8NAdapter extends adapter_core_1.Adapter {
             await new Promise((resolve, reject) => {
                 const npmCommand = this.getNpmCommand(n8nDir);
                 this.log.debug(`executing: "${npmCommand} install --omit=dev" in "${n8nDir}"`);
-                const child = (0, child_process_1.exec)(`${npmCommand} install --omit=dev`, { cwd: n8nDir });
+                const child = (0, node_child_process_2.exec)(`${npmCommand} install --omit=dev`, { cwd: n8nDir });
                 child.stdout?.on('data', (data) => this.log.debug(`[n8n-install] ${data.toString()}`));
                 child.stderr?.on('data', (data) => this.log.debug(`[n8n-install] ${data.toString()}`));
                 child.on('exit', (code /* , signal */) => {
@@ -443,28 +461,27 @@ class N8NAdapter extends adapter_core_1.Adapter {
             this.copyDirectory(nodesDir, (0, node_path_1.join)(dstDir, 'dist', 'nodes'));
         }
         const distPath = `${n8nDir}/node_modules/n8n-editor-ui/dist`;
-        let indexHtml = (0, node_fs_1.readFileSync)(`${distPath}/index.html`).toString();
-        if (!indexHtml.includes('iobroker')) {
-            // Place before first <title> tag the script
-            indexHtml = indexHtml.replace('<title>', `<script src="/assets/socket.iob.js" crossorigin></script>
-        <script src="/assets/iobroker.js" crossorigin></script>
-        <script src="/assets/iobrokerFile.umd.js" crossorigin></script>
+        const indexHtmlOriginal = (0, node_fs_1.readFileSync)(`${distPath}/index.html`).toString();
+        // The scripts are loaded below the base path of n8n: n8n replaces `/{{BASE_PATH}}/` with N8N_PATH on start,
+        // so they are found on the own port of n8n and through the proxy of admin as well.
+        // Scripts injected by older versions with `/assets/...` (or the old `iobrokerSelectId.umd.js`) are replaced.
+        let indexHtml = indexHtmlOriginal.replace(/<script src="[^"]*\/assets\/(socket\.iob|iobroker|iobrokerFile\.umd|iobrokerSelectId\.umd)\.js" crossorigin><\/script>\s*/g, '');
+        // Place before first <title> tag the script
+        indexHtml = indexHtml.replace('<title>', `<script src="/{{BASE_PATH}}/assets/socket.iob.js" crossorigin></script>
+        <script src="/{{BASE_PATH}}/assets/iobroker.js" crossorigin></script>
+        <script src="/{{BASE_PATH}}/assets/iobrokerFile.umd.js" crossorigin></script>
         <title>`);
-            (0, node_fs_1.writeFileSync)(`${distPath}/index.html`, indexHtml);
-        }
-        // replace iobrokerSelectId.umd.js with iobrokerFile.umd.js
-        if (indexHtml.includes('iobrokerSelectId.umd.js')) {
-            // Place before first <title> tag the script
-            indexHtml = indexHtml.replace('<script src="/assets/iobrokerSelectId.umd.js" crossorigin></script>', `<script src="/assets/iobrokerFile.umd.js" crossorigin></script>`);
-            indexHtml = indexHtml.replace('<script src="/assets/iobrokerFile.umd.js" crossorigin></script>\n' +
-                '        <script src="/assets/iobrokerFile.umd.js" crossorigin></script>', `<script src="/assets/iobrokerFile.umd.js" crossorigin></script>`);
+        if (indexHtml !== indexHtmlOriginal) {
             (0, node_fs_1.writeFileSync)(`${distPath}/index.html`, indexHtml);
         }
         let ioBrokerJs = (0, node_fs_1.readFileSync)(`${__dirname}/../n8n-nodes-iobroker/nodes/IoBrokerNodes/iobroker.js`).toString();
         ioBrokerJs = ioBrokerJs.replace('{{PORT}}', (this.config.portAdmin || '5680').toString());
         ioBrokerJs = ioBrokerJs.replace('{{PROTOCOL}}', (this.config.secure ? 'https' : 'http').toString());
         (0, node_fs_1.writeFileSync)(`${distPath}/assets/iobroker.js`, ioBrokerJs);
-        (0, node_fs_1.copyFileSync)(`${__dirname}/../public/index.html`, `${distPath}/assets/iobroker.html`);
+        // This page lives in `assets/` next to its scripts, so it finds them by relative URLs below every base path
+        (0, node_fs_1.writeFileSync)(`${distPath}/assets/iobroker.html`, (0, node_fs_1.readFileSync)(`${__dirname}/../public/index.html`)
+            .toString()
+            .replace(/src="\/assets\//g, 'src="'));
         const ioBrokerFileDialog = require.resolve('@iobroker/webcomponent-file-dialog').replace('.es.', '.umd.');
         (0, node_fs_1.copyFileSync)(ioBrokerFileDialog, `${distPath}/assets/iobrokerFile.umd.js`);
         const ioBrokerWs = require.resolve('@iobroker/ws');
@@ -492,6 +509,17 @@ class N8NAdapter extends adapter_core_1.Adapter {
             return;
         }
         this.log.info('N8N Adapter started');
+        // Admin proxies the tab only if the instance asks for it. The flag follows the setting,
+        // as n8n behind the proxy knows only the path of the proxy and not its own port anymore.
+        // `adminTab.proxy` is new in admin 8.2.1 and not in the installed types yet
+        const adminProxy = this.config.adminProxy !== false;
+        const adminTab = instanceObj.common.adminTab;
+        if (adminTab && !!adminTab.proxy !== adminProxy) {
+            this.log.debug(`${adminProxy ? 'Enable' : 'Disable'} the proxy of admin for the tab`);
+            await this.extendForeignObjectAsync(`system.adapter.${this.namespace}`, {
+                common: { adminTab: { proxy: adminProxy } },
+            });
+        }
         (0, node_dns_1.setDefaultResultOrder)('ipv4first');
         (0, node_net_1.setDefaultAutoSelectFamily)?.(false);
         // Find out of n8n is installed in '../../node_modules' or in '../node_modules'
@@ -512,10 +540,13 @@ class N8NAdapter extends adapter_core_1.Adapter {
         }
         const env = {
             N8N_RUNNERS_ENABLED: 'true',
+            N8N_RUNNERS_BROKER_PORT: (N8N_RUNNERS_BROKER_PORT + (this.instance || 0) * 10).toString(),
             N8N_USER_FOLDER,
             N8N_SECURE_COOKIE: 'false',
             PATH: process.env.PATH,
             N8N_PORT: this.config.port?.toString() || '5678',
+            // Path the browser sees n8n below. n8n itself still answers on `/`: the proxy of admin strips the prefix
+            N8N_PATH: adminProxy ? this.getProxyPath() : '/',
             N8N_DIAGNOSTICS_ENABLED: 'false',
             N8N_HIRING_BANNER_ENABLED: 'false',
             N8N_MFA_ENABLED: 'false',
@@ -1017,15 +1048,29 @@ class N8NAdapter extends adapter_core_1.Adapter {
         if (process.platform !== 'win32') {
             env.N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS = 'false';
         }
+        if (adminProxy) {
+            // The webhooks are still called on the own port of n8n, not through admin.
+            // Without it, n8n would show them with the path of the proxy, like the default `localhost` host otherwise.
+            env.WEBHOOK_URL = `${env.N8N_PROTOCOL}://localhost:${env.N8N_PORT}/`;
+        }
         // Print env for debug in form A=1;B=2
         // this.log.debug(
         //     `Starting n8n with env: ${Object.keys(env)
         //         .map(k => `${k}=${env[k]}`)
         //         .join(';')}`,
         // );
+        // Ports opened by the n8n process: the editor and the task broker of the internal task runners
+        const n8nPorts = [
+            this.usedPort(parseInt(env.N8N_PORT, 10) || 5678, this.config.bind),
+            this.usedPort(parseInt(env.N8N_RUNNERS_BROKER_PORT, 10), '127.0.0.1'),
+        ];
+        await this.warnAboutUsedPorts(n8nPorts);
         // System call used for update of js-controller itself,
         // because during an installation the npm packet will be deleted too, but some files must be loaded even during the install process.
         this.n8nProcess = (0, node_child_process_1.spawn)('node', ['node_modules/n8n/bin/n8n'], { cwd: n8nDir, env });
+        // n8n does not tell when it listens (depends on its log level), so the ports are claimed on start
+        this.reportedN8nPorts = n8nPorts;
+        this.registerUsedPorts(n8nPorts);
         this.n8nProcess.stdout.on('data', (data) => {
             this.log.debug(`[n8n] ${data.toString()}`);
         });
@@ -1042,8 +1087,126 @@ class N8NAdapter extends adapter_core_1.Adapter {
                 this.log.debug('n8n stopped');
             }
             this.n8nProcess = null;
+            if (!this.stopping) {
+                // Not needed on stop: the host marks the entries of a stopped instance as no longer held itself
+                this.freeUsedPorts(this.reportedN8nPorts);
+                this.reportedN8nPorts = [];
+            }
             this.killResolve?.();
         });
+    }
+    /**
+     * Path of the n8n tab in the proxy of admin, as the browser sees it: `/proxy/n8n.0/`,
+     * below the public path of admin if admin runs behind a reverse proxy with its own path
+     */
+    getProxyPath() {
+        return `/${this.config.adminPath || ''}/proxy/${this.namespace}/`.replace(/\/+/g, '/');
+    }
+    /**
+     * Whether the ports may be reported to the registry of used resources of js-controller 8.
+     * A host without the feature never answers, so every call would sit out the timeout of the adapter API.
+     */
+    canReportUsedResources() {
+        const api = this;
+        if (typeof api.registerUsedResource !== 'function' || typeof api.freeUsedResource !== 'function') {
+            this.log.debug('Used ports are not reported: js-controller is older than 8');
+            return false;
+        }
+        if (typeof api.supportsFeature !== 'function' || !api.supportsFeature(USED_RESOURCES_FEATURE)) {
+            this.log.debug(`Used ports are not reported: js-controller does not support "${USED_RESOURCES_FEATURE}"`);
+            return false;
+        }
+        if (this.common?.declareUsedResources !== true) {
+            this.log.debug('Used ports are not reported: "common.declareUsedResources" is not set');
+            return false;
+        }
+        return true;
+    }
+    /**
+     * Entry of the registry for a port. The family is only reported for a concrete address
+     *
+     * @param port TCP port
+     * @param bind address the socket is bound to, empty for every interface
+     */
+    usedPort(port, bind) {
+        const data = { port, bind: bind || '0.0.0.0' };
+        if (!WILDCARD_ADDRESSES.includes(data.bind)) {
+            data.family = (0, node_net_1.isIP)(data.bind) === 6 ? 6 : 4;
+        }
+        return data;
+    }
+    /** Run a call to the registry after the previous one. Failures are logged, the ports are not worth a crash */
+    queueUsedResources(task) {
+        this.usedResourcesQueue = this.usedResourcesQueue.then(task).catch((e) => {
+            try {
+                this.log.warn(`Could not report the used ports: ${e?.message}`);
+            }
+            catch {
+                // the logger may already be gone during shutdown
+            }
+        });
+    }
+    /**
+     * Ask the registry whether another instance holds one of the ports, so a failing listen can name it
+     *
+     * @param ports ports that are about to be opened
+     */
+    async warnAboutUsedPorts(ports) {
+        const api = this;
+        if (typeof api.checkUsedResource !== 'function' || !this.canReportUsedResources()) {
+            return;
+        }
+        for (const data of ports) {
+            try {
+                const holders = await api.checkUsedResource('tcpPort', { port: data.port, bind: data.bind });
+                // Entries of this instance itself, e.g. left from before a restart, are no conflict
+                const others = holders
+                    .map(h => h.instance)
+                    .filter(id => id !== this.namespace && id !== `system.adapter.${this.namespace}`);
+                if (others.length) {
+                    this.log.warn(`Port ${data.port} is already used by ${others.join(', ')}. The server will probably not start.`);
+                }
+            }
+            catch (e) {
+                this.log.debug(`Cannot check if port ${data.port} is free: ${e.message}`);
+            }
+        }
+    }
+    /**
+     * Report ports this instance listens on as occupied
+     *
+     * @param ports ports that are open now
+     */
+    registerUsedPorts(ports) {
+        if (!this.canReportUsedResources()) {
+            return;
+        }
+        for (const data of ports) {
+            this.queueUsedResources(async () => {
+                await this.registerUsedResource('tcpPort', data);
+                this.log.debug(`Registered TCP port ${data.bind}:${data.port} as used by this instance`);
+            });
+        }
+    }
+    /**
+     * Take reported ports back, e.g. when n8n exited
+     *
+     * @param ports ports that were reported
+     */
+    freeUsedPorts(ports) {
+        if (!ports.length || !this.canReportUsedResources()) {
+            return;
+        }
+        for (const data of ports) {
+            // Filtered by port and address only: the family was derived from the address
+            this.queueUsedResources(async () => {
+                await this.freeUsedResource('tcpPort', {
+                    port: data.port,
+                    bind: data.bind,
+                });
+                this.log.debug(`Freed TCP port ${data.bind}:${data.port}`);
+            });
+        }
     }
     async destroyN8n() {
         if (this.checkTimeout) {

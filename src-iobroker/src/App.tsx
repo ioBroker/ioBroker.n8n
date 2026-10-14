@@ -11,7 +11,7 @@ import {
     type GenericAppState,
     type GenericAppProps,
     SelectID,
-} from '@iobroker/adapter-react-v5';
+} from '@iobroker/gui-components';
 
 interface AppState extends GenericAppState {
     lang: ioBroker.Languages;
@@ -20,7 +20,7 @@ interface AppState extends GenericAppState {
     selectedId: string | undefined;
 }
 
-class App extends GenericApp<GenericAppProps, AppState> {
+export default class App extends GenericApp<GenericAppProps, AppState> {
     private channel = new BroadcastChannel('ioBrokerChannel');
 
     constructor(props: GenericAppProps) {
@@ -95,5 +95,3 @@ class App extends GenericApp<GenericAppProps, AppState> {
         );
     }
 }
-
-export default App;

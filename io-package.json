@@ -90,7 +90,7 @@
         "fr": "commit initial",
         "it": "commit iniziale",
         "es": "inicial",
-        "pl": "initial commit",
+        "pl": "Pierwsza wersja",
         "uk": "початкова комісія",
         "zh-cn": "初步承诺"
       }
@@ -169,8 +169,10 @@
         "zh-cn": "n8n"
       },
       "singleton": true,
-      "supportsLoadingMessage": true
+      "supportsLoadingMessage": true,
+      "proxy": true
     },
+    "declareUsedResources": true,
     "connectionType": "local",
     "dataSource": "push",
     "dependencies": [
@@ -178,7 +180,12 @@
         "js-controller": ">=6.0.11"
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "globalDependencies": [
+      {
+        "admin": ">=8.2.0"
+      }
+    ]
   },
   "native": {
     "portAdmin": "5680",
@@ -191,6 +198,8 @@
     "certChained": "",
     "secure": false,
     "leCollection": false,
+    "adminProxy": true,
+    "adminPath": "",
     "smtp": {
       "host": "",
       "port": 587,
@@ -203,5 +212,12 @@
       }
     }
   },
-  "instanceObjects": []
+  "instanceObjects": [],
+  "protectedNative": [
+    "password",
+    "smtp"
+  ],
+  "encryptedNative": [
+    "password"
+  ]
 }

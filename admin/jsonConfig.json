@@ -62,6 +62,27 @@
                     "md": 6,
                     "lg": 6,
                     "hidden": "!!data.auth"
+                },
+                "adminProxy": {
+                    "newLine": true,
+                    "type": "checkbox",
+                    "label": "Open n8n via admin",
+                    "help": "adminProxy_help",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 6,
+                    "lg": 5
+                },
+                "adminPath": {
+                    "type": "text",
+                    "label": "Path of admin",
+                    "help": "adminPath_help",
+                    "placeholder": "/",
+                    "hidden": "!data.adminProxy",
+                    "xs": 12,
+                    "sm": 12,
+                    "md": 6,
+                    "lg": 5
                 }
             }
         },
