@@ -24,7 +24,7 @@ import { WebServer, checkPublicIP, CertificateManager, type CertificateCollectio
 import type { N8NAdapterConfig } from './types';
 import { SocketAdmin, type Server, type Store, type SocketSettings } from '@iobroker/socket-classes';
 import { SocketIO } from '@iobroker/ws-server';
-import { exec } from 'child_process';
+import { exec } from 'node:child_process';
 
 interface WebStructure {
     server: null | (Server & { __server: WebStructure });
