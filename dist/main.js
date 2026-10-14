@@ -19,7 +19,6 @@ const N8N_VERSION = pack.devDependencies.n8n || pack.dependencies.n8n || '1.99.0
 const webserver_1 = require("@iobroker/webserver");
 const socket_classes_1 = require("@iobroker/socket-classes");
 const ws_server_1 = require("@iobroker/ws-server");
-const node_child_process_2 = require("node:child_process");
 /** Feature a js-controller announces once it keeps the per-host registry of used resources. Since js-controller 8. */
 const USED_RESOURCES_FEATURE = 'CONTROLLER_USED_RESOURCES';
 /** Addresses that stand for every interface: the port is occupied in both address families, so no family is reported */
@@ -29,6 +28,26 @@ const WILDCARD_ADDRESSES = ['0.0.0.0', '::', '*', ''];
  * Further instances use steps of 10 (n8n.1 → 5689), as "+ instance" would hit the default service port 5680.
  */
 const N8N_RUNNERS_BROKER_PORT = 5679;
+/** First admin version, that opens the tab through its proxy (`common.adminTab.proxy`) */
+const ADMIN_PROXY_VERSION = '8.2.1';
+/**
+ * Compare a version with the minimal one. Pre-release tags are ignored, so 8.2.1-alpha.0 counts as 8.2.1.
+ *
+ * @param version version to check, e.g. of an installed adapter
+ * @param minimal minimal version, e.g. `8.2.1`
+ */
+function isVersionAtLeast(version, minimal) {
+    const actual = (version || '').split('-')[0].split('.');
+    const required = minimal.split('.');
+    for (let i = 0; i < required.length; i++) {
+        const a = parseInt(actual[i], 10) || 0;
+        const r = parseInt(required[i], 10) || 0;
+        if (a !== r) {
+            return a > r;
+        }
+    }
+    return true;
+}
 class N8NAdapter extends adapter_core_1.Adapter {
     n8nProcess = null;
     webServer = {
@@ -422,7 +441,7 @@ class N8NAdapter extends adapter_core_1.Adapter {
             await new Promise((resolve, reject) => {
                 const npmCommand = this.getNpmCommand(n8nDir);
                 this.log.debug(`executing: "${npmCommand} install --omit=dev" in "${n8nDir}"`);
-                const child = (0, node_child_process_2.exec)(`${npmCommand} install --omit=dev`, { cwd: n8nDir });
+                const child = (0, node_child_process_1.exec)(`${npmCommand} install --omit=dev`, { cwd: n8nDir });
                 child.stdout?.on('data', (data) => this.log.debug(`[n8n-install] ${data.toString()}`));
                 child.stderr?.on('data', (data) => this.log.debug(`[n8n-install] ${data.toString()}`));
                 child.on('exit', (code /* , signal */) => {
@@ -511,8 +530,13 @@ class N8NAdapter extends adapter_core_1.Adapter {
         this.log.info('N8N Adapter started');
         // Admin proxies the tab only if the instance asks for it. The flag follows the setting,
         // as n8n behind the proxy knows only the path of the proxy and not its own port anymore.
-        // `adminTab.proxy` is new in admin 8.2.1 and not in the installed types yet
-        const adminProxy = this.config.adminProxy !== false;
+        // `adminTab.proxy` is new in admin 8.2.1: an older admin opens n8n directly on its port,
+        // so n8n must not run under the path of the proxy then
+        let adminProxy = this.config.adminProxy !== false;
+        if (adminProxy && !(await this.isAdminProxySupported())) {
+            this.log.warn(`"Open n8n via admin" requires admin >= ${ADMIN_PROXY_VERSION}, n8n is opened directly on its own port`);
+            adminProxy = false;
+        }
         const adminTab = instanceObj.common.adminTab;
         if (adminTab && !!adminTab.proxy !== adminProxy) {
             this.log.debug(`${adminProxy ? 'Enable' : 'Disable'} the proxy of admin for the tab`);
@@ -1099,6 +1123,14 @@ class N8NAdapter extends adapter_core_1.Adapter {
      * Path of the n8n tab in the proxy of admin, as the browser sees it: `/proxy/n8n.0/`,
      * below the public path of admin if admin runs behind a reverse proxy with its own path
      */
+    /** Whether an admin instance is new enough to open the tab through its proxy */
+    async isAdminProxySupported() {
+        const view = await this.getObjectViewAsync('system', 'instance', {
+            startkey: 'system.adapter.admin.',
+            endkey: 'system.adapter.admin.香',
+        });
+        return view.rows.some(row => isVersionAtLeast(row.value?.common?.version, ADMIN_PROXY_VERSION));
+    }
     getProxyPath() {
         return `/${this.config.adminPath || ''}/proxy/${this.namespace}/`.replace(/\/+/g, '/');
     }

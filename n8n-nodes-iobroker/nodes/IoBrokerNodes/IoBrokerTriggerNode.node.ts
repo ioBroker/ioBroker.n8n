@@ -7,7 +7,7 @@ import {
 	type IBinaryData,
 	type ILoadOptionsFunctions,
 	type INodePropertyOptions,
-	NodeConnectionType,
+	NodeConnectionTypes,
 	NodeOperationError,
 } from 'n8n-workflow';
 import {
@@ -32,7 +32,7 @@ export class IoBrokerTriggerNode implements INodeType {
 			color: '#144578',
 		},
 		inputs: [],
-		outputs: [NodeConnectionType.Main], // NodeConnectionType.Main
+		outputs: [NodeConnectionTypes.Main], // NodeConnectionTypes.Main
 		properties: [
 			{
 				noDataExpression: true,
@@ -220,14 +220,12 @@ export class IoBrokerTriggerNode implements INodeType {
 				);
 			}
 			fileName = rest.join('/');
-			console.log('Listening for ', type, adapterName, fileName);
 			const fileHandler: IobFileSubscriptionHandler = (
 				id: string,
 				fileName: string,
 				size?: number | null,
 				file?: { file: string | Buffer; mimeType?: string },
 			): void => {
-				console.log('Triggering on file', type, id, fileName);
 				this.emit([
 					[
 						{
@@ -257,7 +255,6 @@ export class IoBrokerTriggerNode implements INodeType {
 				id: string,
 				obj?: ioBroker.Object | null,
 			): void => {
-				console.log('Triggering on object', type, id, obj);
 				this.emit([[{ json: (obj as unknown as IDataObject) || {} }]]);
 			};
 
@@ -269,12 +266,10 @@ export class IoBrokerTriggerNode implements INodeType {
 		// state
 		const oid = this.getNodeParameter('oid') as string;
 
-		console.log('Triggering on', type, oid);
 		const stateHandler: IobStateSubscriptionHandler = (
 			id: string,
 			state?: ioBroker.State | null,
 		): void => {
-			console.log('Triggering on', type, id, state);
 			this.emit([[{ json: (state as unknown as IDataObject) || {} }]]);
 		};
 

@@ -525,7 +525,7 @@ export class N8NNodeAdapter extends Adapter {
 						) {
 							file = await this.readFileAsync(id, fileName);
 						}
-						this.handlers.file[nodeId].cb(id, fileName, _size);
+						this.handlers.file[nodeId].cb(id, fileName, _size, file);
 					}
 				}
 			} else if (this.handlers.file[nodeId].oid === id) {
@@ -539,7 +539,7 @@ export class N8NNodeAdapter extends Adapter {
 						) {
 							file = await this.readFileAsync(id, fileName);
 						}
-						this.handlers.file[nodeId].cb(id, fileName, _size);
+						this.handlers.file[nodeId].cb(id, fileName, _size, file);
 					}
 				} else if (
 					!this.handlers.file[nodeId].fileName ||
@@ -553,7 +553,7 @@ export class N8NNodeAdapter extends Adapter {
 					) {
 						file = await this.readFileAsync(id, fileName);
 					}
-					this.handlers.file[nodeId].cb(id, fileName, _size);
+					this.handlers.file[nodeId].cb(id, fileName, _size, file);
 				}
 			}
 		}
@@ -637,7 +637,7 @@ export class N8NNodeAdapter extends Adapter {
 			if (newKey) {
 				if (!this.subscribes.file[newKey]) {
 					this.subscribes.file[newKey] = [];
-					console.log('Subscribing to files', pattern.oid, pattern.fileName || '*');
+					this.log.debug(`Subscribing to files ${pattern.oid} ${pattern.fileName || '*'}`);
 					await this.subscribeForeignFiles(pattern.oid, pattern.fileName || '*');
 				}
 				if (!this.subscribes.file[newKey].includes(nodeId)) {
@@ -980,7 +980,7 @@ export class N8NNodeAdapter extends Adapter {
 				oid,
 				cb: (error: Error | null | undefined, result?: ioBroker.Object | null): void => {
 					if (error) {
-						reject(new Error(`Failed to set object ${oid}`));
+						reject(new Error(`Failed to get object ${oid}`));
 					} else {
 						resolve(result);
 					}
@@ -1000,7 +1000,7 @@ export class N8NNodeAdapter extends Adapter {
 				state,
 				cb: (error: Error | null | undefined, result?: string): void => {
 					if (error) {
-						reject(new Error(`Failed to set object ${oid}`));
+						reject(new Error(`Failed to set state ${oid}`));
 					} else {
 						resolve(result!);
 					}
@@ -1019,7 +1019,7 @@ export class N8NNodeAdapter extends Adapter {
 				oid,
 				cb: (error: Error | null, result?: ioBroker.State | null): void => {
 					if (error) {
-						reject(new Error(`Failed to set object ${oid}`));
+						reject(new Error(`Failed to get state ${oid}`));
 					} else {
 						resolve(result);
 					}
@@ -1049,7 +1049,7 @@ export class N8NNodeAdapter extends Adapter {
 				base64,
 				cb: (error: Error | null | undefined): void => {
 					if (error) {
-						reject(new Error(`Failed to set object ${oid}`));
+						reject(new Error(`Failed to write file ${oid}/${fileName}`));
 					} else {
 						resolve();
 					}
@@ -1082,7 +1082,7 @@ export class N8NNodeAdapter extends Adapter {
 						result?: { file: string | Buffer; mimeType?: string } | null,
 					): void => {
 						if (error) {
-							reject(new Error(`Failed to write file ${oid}`));
+							reject(new Error(`Failed to read file ${oid}/${fileName}`));
 						} else {
 							resolve(result || null);
 						}

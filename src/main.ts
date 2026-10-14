@@ -1,6 +1,6 @@
 import { setDefaultResultOrder } from 'node:dns';
 import { isIP, setDefaultAutoSelectFamily } from 'node:net';
-import { execSync, spawn } from 'node:child_process';
+import { execSync, spawn, exec } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readdirSync, lstatSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import express, { type Express, type NextFunction, type Request, type Response } from 'express';
@@ -24,7 +24,6 @@ import { WebServer, checkPublicIP, CertificateManager, type CertificateCollectio
 import type { N8NAdapterConfig } from './types';
 import { SocketAdmin, type Server, type Store, type SocketSettings } from '@iobroker/socket-classes';
 import { SocketIO } from '@iobroker/ws-server';
-import { exec } from 'node:child_process';
 
 interface WebStructure {
     server: null | (Server & { __server: WebStructure });
@@ -64,6 +63,28 @@ interface UsedResourcesApi {
  * Further instances use steps of 10 (n8n.1 → 5689), as "+ instance" would hit the default service port 5680.
  */
 const N8N_RUNNERS_BROKER_PORT = 5679;
+
+/** First admin version, that opens the tab through its proxy (`common.adminTab.proxy`) */
+const ADMIN_PROXY_VERSION = '8.2.1';
+
+/**
+ * Compare a version with the minimal one. Pre-release tags are ignored, so 8.2.1-alpha.0 counts as 8.2.1.
+ *
+ * @param version version to check, e.g. of an installed adapter
+ * @param minimal minimal version, e.g. `8.2.1`
+ */
+function isVersionAtLeast(version: string | undefined, minimal: string): boolean {
+    const actual = (version || '').split('-')[0].split('.');
+    const required = minimal.split('.');
+    for (let i = 0; i < required.length; i++) {
+        const a = parseInt(actual[i], 10) || 0;
+        const r = parseInt(required[i], 10) || 0;
+        if (a !== r) {
+            return a > r;
+        }
+    }
+    return true;
+}
 
 interface Certificates {
     /** public certificate */
@@ -632,14 +653,21 @@ export class N8NAdapter extends Adapter {
 
         // Admin proxies the tab only if the instance asks for it. The flag follows the setting,
         // as n8n behind the proxy knows only the path of the proxy and not its own port anymore.
-        // `adminTab.proxy` is new in admin 8.2.1 and not in the installed types yet
-        const adminProxy = this.config.adminProxy !== false;
+        // `adminTab.proxy` is new in admin 8.2.1: an older admin opens n8n directly on its port,
+        // so n8n must not run under the path of the proxy then
+        let adminProxy = this.config.adminProxy !== false;
+        if (adminProxy && !(await this.isAdminProxySupported())) {
+            this.log.warn(
+                `"Open n8n via admin" requires admin >= ${ADMIN_PROXY_VERSION}, n8n is opened directly on its own port`,
+            );
+            adminProxy = false;
+        }
         const adminTab = instanceObj.common.adminTab as { proxy?: boolean } | undefined;
         if (adminTab && !!adminTab.proxy !== adminProxy) {
             this.log.debug(`${adminProxy ? 'Enable' : 'Disable'} the proxy of admin for the tab`);
             await this.extendForeignObjectAsync(`system.adapter.${this.namespace}`, {
                 common: { adminTab: { proxy: adminProxy } },
-            } as unknown as Partial<ioBroker.InstanceObject>);
+            });
         }
 
         setDefaultResultOrder('ipv4first');
@@ -1237,6 +1265,15 @@ export class N8NAdapter extends Adapter {
      * Path of the n8n tab in the proxy of admin, as the browser sees it: `/proxy/n8n.0/`,
      * below the public path of admin if admin runs behind a reverse proxy with its own path
      */
+    /** Whether an admin instance is new enough to open the tab through its proxy */
+    private async isAdminProxySupported(): Promise<boolean> {
+        const view = await this.getObjectViewAsync('system', 'instance', {
+            startkey: 'system.adapter.admin.',
+            endkey: 'system.adapter.admin.香',
+        });
+        return view.rows.some(row => isVersionAtLeast(row.value?.common?.version, ADMIN_PROXY_VERSION));
+    }
+
     private getProxyPath(): string {
         return `/${this.config.adminPath || ''}/proxy/${this.namespace}/`.replace(/\/+/g, '/');
     }

@@ -7,7 +7,7 @@ function readLogFile(adapter: ioBroker.Adapter, host: string, fileName: string):
 		}
 		// Parse file name into host name and transport: log/MSI/file1/ReadMe.log
 		const [, hostName, transport, ...shortFileName] = fileName.split('/');
-		console.log(
+		adapter.log.debug(
 			`Reading log file ${shortFileName.join('/')} from host ${host} (${hostName}) via ${transport}`,
 		);
 

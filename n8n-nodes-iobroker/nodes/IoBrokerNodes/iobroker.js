@@ -17,7 +17,7 @@ function openSelectDialogNewTab(item, allowAll) {
 
 	// Open new tab http://host:5680/index.html?selected=item.value&allowAll=allowAll
 	dialog = window.open(
-		`/assets/iobroker.html?selected=${encodeURIComponent(item.value)}&allowAll=${!!allowAll}`,
+		`/{{BASE_PATH}}/assets/iobroker.html?selected=${encodeURIComponent(item.value)}&allowAll=${!!allowAll}`,
 		'_blank',
 	);
 }
@@ -102,11 +102,21 @@ function openFileDialog(item) {
 	}
 }
 
-window.ioBrokerAdmin = {
-	host: window.location.hostname,
-	port: '{{PORT}}',
-	protocol: '{{PROTOCOL}}:',
-};
+// n8n replaces `/{{BASE_PATH}}/` with its N8N_PATH on start: `/` on its own port, `/proxy/n8n.0/` behind admin.
+// Through the proxy of admin, the service port of the adapter is usually not reachable (firewall, cloud, HTTPS).
+// The dialogs use the socket of admin then: it is on the same address and accepts the login cookie of admin.
+window.ioBrokerAdmin =
+	'/{{BASE_PATH}}/' !== '/'
+		? {
+				host: window.location.hostname,
+				port: window.location.port || (window.location.protocol === 'https:' ? '443' : '80'),
+				protocol: window.location.protocol,
+			}
+		: {
+				host: window.location.hostname,
+				port: '{{PORT}}',
+				protocol: '{{PROTOCOL}}:',
+			};
 
 function detectIoBroker() {
 	const items = document.querySelectorAll('.el-input__inner');

@@ -8,7 +8,7 @@ function readLogFile(adapter, host, fileName) {
             host = host.substring('system.host.'.length);
         }
         const [, hostName, transport, ...shortFileName] = fileName.split('/');
-        console.log(`Reading log file ${shortFileName.join('/')} from host ${host} (${hostName}) via ${transport}`);
+        adapter.log.debug(`Reading log file ${shortFileName.join('/')} from host ${host} (${hostName}) via ${transport}`);
         adapter.sendToHost(`system.host.${hostName}`, 'getLogFile', { filename: shortFileName.join('/'), transport }, (result) => {
             const _result = result;
             if (!_result || _result.error) {

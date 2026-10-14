@@ -4,7 +4,7 @@ import {
 	type INodeExecutionData,
 	type INodeType,
 	type INodeTypeDescription,
-	NodeConnectionType,
+	NodeConnectionTypes,
 } from 'n8n-workflow';
 import { getAdapter } from './IobAdapter';
 
@@ -21,8 +21,8 @@ export class IoBrokerOutputNode implements INodeType {
 			name: 'ioBroker Output',
 			color: '#144578',
 		},
-		inputs: [NodeConnectionType.Main],
-		outputs: [NodeConnectionType.Main],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		properties: [
 			{
 				noDataExpression: true,
@@ -161,7 +161,7 @@ export class IoBrokerOutputNode implements INodeType {
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 
-		let type: 'state' | 'object' | undefined;
+		let type: 'state' | 'object' | 'file' | 'log' | undefined;
 		let val: ioBroker.StateValue = '';
 		let oid = '';
 		let ack = false;
@@ -172,7 +172,7 @@ export class IoBrokerOutputNode implements INodeType {
 		// (This could be a different value for each item in case it contains an expression)
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
 			try {
-				type = this.getNodeParameter('type', itemIndex, '') as 'state' | 'object';
+				type = this.getNodeParameter('type', itemIndex, '') as 'state' | 'object' | 'file' | 'log';
 				oid = this.getNodeParameter('oid', itemIndex, '') as string;
 				val = this.getNodeParameter('val', itemIndex, '') as string;
 
@@ -259,7 +259,7 @@ export class IoBrokerOutputNode implements INodeType {
 						}
 					} else {
 						// For other types, we assume val is a simple value
-						await adapter.setIobState(oid, { val, ack: false });
+						await adapter.setIobState(oid, { val, ack });
 					}
 				} else if (type === 'file') {
 					let fileName = this.getNodeParameter('fileName', itemIndex, '') as string;
@@ -291,9 +291,8 @@ export class IoBrokerOutputNode implements INodeType {
 					}
 
 					// For file type, we assume val is the file content
-					// Here, we write the file to the specified path
-					await adapter.setIobFile(adapterName, rest.join('/'), val, base64);
-					// Note: Error handling for file operations can be improved
+					const fileContent = val == null ? '' : typeof val === 'string' ? val : String(val);
+					await adapter.setIobFile(adapterName, rest.join('/'), fileContent, base64);
 				} else if (type === 'log') {
 					const level: ioBroker.LogLevel = this.getNodeParameter(
 						'level',

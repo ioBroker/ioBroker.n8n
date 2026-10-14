@@ -1,5 +1,5 @@
 import { Types } from '@iobroker/type-detector';
-import type { InternalDetectorState } from '@iobroker/type-detector/types';
+import type { InternalDetectorState } from '@iobroker/type-detector/build/types';
 export type SmartNameObject = {
     [lang in ioBroker.Languages]?: string;
 } & {

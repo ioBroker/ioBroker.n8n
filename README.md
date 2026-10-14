@@ -23,9 +23,11 @@ With _n8n Adapter_ you can edit and execute [n8n](https://n8n.io/) workflows dir
 ### **WORK IN PROGRESS**
 - (ioBroker-Bot) Adapter requires js-controller >= 6.0.11 now.
 * (@GermanBluefox) Updated packages
-* (@GermanBluefox) The tab in admin runs through the port and the login of admin (option "Open n8n via admin", on by default, admin 8.2.1 is required). n8n is then no longer reachable directly on its own port, webhooks still are
+* (@GermanBluefox) The tab in admin runs through the port and the login of admin (option "Open n8n via admin", on by default, admin 8.2.1 is required, with an older admin n8n is opened directly on its own port). n8n is then no longer reachable directly on its own port, webhooks still are
 * (@GermanBluefox) Occupied TCP ports (service, n8n editor, n8n task broker) are reported to js-controller 8 (`registerUsedResource`)
 * (@GermanBluefox) The n8n task broker port depends on the instance number (5679 + 10 * instance), so several instances can run on one host
+* (@GermanBluefox) Admin 7.6.20 is enough again, the proxy of admin is only used with admin 8.2.1 or newer
+* (@GermanBluefox) Tested with node.js 22, 24 and 26
 
 ### 0.3.0 (2025-09-06)
 * (@GermanBluefox) Made configurable ports and https settings

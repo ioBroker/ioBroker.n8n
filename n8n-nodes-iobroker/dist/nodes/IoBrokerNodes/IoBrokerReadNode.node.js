@@ -18,8 +18,8 @@ class IoBrokerReadNode {
                 name: 'ioBroker Read',
                 color: '#144578',
             },
-            inputs: ["main"],
-            outputs: ["main"],
+            inputs: [n8n_workflow_1.NodeConnectionTypes.Main],
+            outputs: [n8n_workflow_1.NodeConnectionTypes.Main],
             properties: [
                 {
                     noDataExpression: true,
@@ -146,7 +146,7 @@ class IoBrokerReadNode {
                         },
                         {
                             name: 'Warning',
-                            value: 'Warn',
+                            value: 'warn',
                         },
                         {
                             name: 'Error',

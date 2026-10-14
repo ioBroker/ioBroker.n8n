@@ -39,19 +39,19 @@
         ]
     },
     "dependencies": {
-        "@iobroker/adapter-core": "^3.2.3",
-        "@iobroker/type-detector": "^4.5.1",
-        "ws": "^8.18.3",
-        "@iobroker/socket-client-backend": "^5.0.2"
+        "@iobroker/adapter-core": "^3.4.3",
+        "@iobroker/type-detector": "^6.0.2",
+        "ws": "^8.22.0",
+        "@iobroker/socket-client-backend": "^5.4.1"
     },
     "devDependencies": {
-        "@typescript-eslint/parser": "~8.38.0",
-        "@iobroker/types": "^7.0.7",
-        "n8n-workflow": "^1.82.0",
-        "eslint": "^8.57.1",
-        "eslint-plugin-n8n-nodes-base": "^1.16.3",
-        "prettier": "^3.6.2",
-        "typescript": "^5.8.3"
+        "@typescript-eslint/parser": "~8.71.2",
+        "@iobroker/types": "^7.2.5",
+        "n8n-workflow": "^2.16.0",
+        "eslint": "^10.12.0",
+        "eslint-plugin-n8n-nodes-base": "^2.0.0",
+        "prettier": "^3.9.10",
+        "typescript": "~6.0.3"
     },
     "peerDependencies": {
         "n8n-workflow": "*"

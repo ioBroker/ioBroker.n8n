@@ -389,7 +389,7 @@ function getControlType(device, state) {
             }
         }
     }
-    else if (device.type === type_detector_1.Types.blind && state.name === 'SET') {
+    else if (device.type === type_detector_1.Types.blind) {
         if (state.name === 'SET') {
             smartType = 'blindPosition';
         }

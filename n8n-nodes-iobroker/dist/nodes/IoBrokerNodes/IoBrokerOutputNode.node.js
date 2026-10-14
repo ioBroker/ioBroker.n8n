@@ -17,8 +17,8 @@ class IoBrokerOutputNode {
                 name: 'ioBroker Output',
                 color: '#144578',
             },
-            inputs: ["main"],
-            outputs: ["main"],
+            inputs: [n8n_workflow_1.NodeConnectionTypes.Main],
+            outputs: [n8n_workflow_1.NodeConnectionTypes.Main],
             properties: [
                 {
                     noDataExpression: true,
@@ -242,7 +242,7 @@ class IoBrokerOutputNode {
                         }
                     }
                     else {
-                        await adapter.setIobState(oid, { val, ack: false });
+                        await adapter.setIobState(oid, { val, ack });
                     }
                 }
                 else if (type === 'file') {
@@ -264,7 +264,8 @@ class IoBrokerOutputNode {
                     if (!rest.join('/')) {
                         throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'For file type, path must contain a file name.');
                     }
-                    await adapter.setIobFile(adapterName, rest.join('/'), val, base64);
+                    const fileContent = val == null ? '' : typeof val === 'string' ? val : String(val);
+                    await adapter.setIobFile(adapterName, rest.join('/'), fileContent, base64);
                 }
                 else if (type === 'log') {
                     const level = this.getNodeParameter('level', itemIndex, '');

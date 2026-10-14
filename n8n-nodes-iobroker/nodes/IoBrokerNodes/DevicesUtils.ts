@@ -1,5 +1,5 @@
 import ChannelDetector, { type DetectOptions, Types } from '@iobroker/type-detector';
-import type { InternalDetectorState } from '@iobroker/type-detector/types';
+import type { InternalDetectorState } from '@iobroker/type-detector/build/types';
 
 export type SmartNameObject = { [lang in ioBroker.Languages]?: string } & {
 	smartType?: string | null;
@@ -576,9 +576,8 @@ function getControlType(
 				smartType = 'swingPosition';
 			}
 		}
-	} else if (device.type === Types.blind && state.name === 'SET') {
+	} else if (device.type === Types.blind) {
 		if (state.name === 'SET') {
-			// set temperature
 			smartType = 'blindPosition';
 		} else if (state.name === 'STOP') {
 			smartType = 'stop';

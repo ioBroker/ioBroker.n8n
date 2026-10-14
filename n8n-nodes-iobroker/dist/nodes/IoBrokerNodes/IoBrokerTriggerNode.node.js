@@ -18,7 +18,7 @@ class IoBrokerTriggerNode {
                 color: '#144578',
             },
             inputs: [],
-            outputs: ["main"],
+            outputs: [n8n_workflow_1.NodeConnectionTypes.Main],
             properties: [
                 {
                     noDataExpression: true,
@@ -186,9 +186,7 @@ class IoBrokerTriggerNode {
                 throw new n8n_workflow_1.NodeOperationError(this.getNode(), 'For file type, path must contain a file name.');
             }
             fileName = rest.join('/');
-            console.log('Listening for ', type, adapterName, fileName);
             const fileHandler = (id, fileName, size, file) => {
-                console.log('Triggering on file', type, id, fileName);
                 this.emit([
                     [
                         {
@@ -212,7 +210,6 @@ class IoBrokerTriggerNode {
         else if (type === 'object') {
             const oid = this.getNodeParameter('oid');
             const objectHandler = (id, obj) => {
-                console.log('Triggering on object', type, id, obj);
                 this.emit([[{ json: obj || {} }]]);
             };
             const nodeId = this.getNode().id;
@@ -220,9 +217,7 @@ class IoBrokerTriggerNode {
             return {};
         }
         const oid = this.getNodeParameter('oid');
-        console.log('Triggering on', type, oid);
         const stateHandler = (id, state) => {
-            console.log('Triggering on', type, id, state);
             this.emit([[{ json: state || {} }]]);
         };
         const nodeId = this.getNode().id;
