@@ -27,7 +27,7 @@ With _n8n Adapter_ you can edit and execute [n8n](https://n8n.io/) workflows dir
 * (@GermanBluefox) Occupied TCP ports (service, n8n editor, n8n task broker) are reported to js-controller 8 (`registerUsedResource`)
 * (@GermanBluefox) The n8n task broker port depends on the instance number (5679 + 10 * instance), so several instances can run on one host
 * (@GermanBluefox) Admin 7.6.20 is enough again, the proxy of admin is only used with admin 8.2.1 or newer
-* (@GermanBluefox) Tested with node.js 22, 24 and 26
+* (@GermanBluefox) Tested with node.js 22 and 24 (node.js 26 is not supported by n8n 2.35 yet)
 
 ### 0.3.0 (2025-09-06)
 * (@GermanBluefox) Made configurable ports and https settings
