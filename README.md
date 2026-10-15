@@ -20,7 +20,7 @@ With _n8n Adapter_ you can edit and execute [n8n](https://n8n.io/) workflows dir
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
-### **WORK IN PROGRESS**
+### 0.3.1 (2026-10-15)
 - (ioBroker-Bot) Adapter requires js-controller >= 6.0.11 now.
 * (@GermanBluefox) Updated packages
 * (@GermanBluefox) The tab in admin runs through the port and the login of admin (option "Open n8n via admin", on by default, admin 8.2.1 is required, with an older admin n8n is opened directly on its own port). n8n is then no longer reachable directly on its own port, webhooks still are
@@ -40,15 +40,6 @@ With _n8n Adapter_ you can edit and execute [n8n](https://n8n.io/) workflows dir
 
 ### 0.1.2 (2025-08-26)
 * (@GermanBluefox) Used better format for device description
-
-### 0.1.1 (2025-08-25)
-* (bluefox) Implemented read/write files and logs
-
-### 0.1.0 (2025-08-24)
-* (bluefox) Implemented read devices
-
-### 0.0.13 (2025-08-24)
-* (bluefox) initial commit
 
 [Older changelogs can be found there](CHANGELOG_OLD.md)
 
