@@ -45,7 +45,7 @@
 		"@iobroker/socket-client-backend": "^5.4.1"
 	},
 	"devDependencies": {
-		"@typescript-eslint/parser": "~8.71.2",
+		"@typescript-eslint/parser": "~8.72.1",
 		"@iobroker/types": "^7.2.5",
 		"n8n-workflow": "^2.16.0",
 		"eslint": "^10.13.0",
